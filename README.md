@@ -1,4 +1,4 @@
-# Group 3 (C3) - COS30045 Data Visualisation Project (2026)
+# Group 24 (C3) - COS30045 Data Visualisation Project (2026)
 
 ## Hospitalised Injuries from Road Crashes in Australia (2011–2021)
 
@@ -9,7 +9,7 @@ This interactive web visualisation project critically analyses and communicates 
 
 ### Repository Structure
 ```text
-Group-3-C3-COS30045-Data-Visualisation/
+Group-24-C3-COS30045-Data-Visualisation/
 ├── index.html                  # Main interactive D3 dashboard & data story webpage
 ├── css/
 │   └── style.css               # Dashboard layout, KPI cards, filter ribbon, and chart styling
