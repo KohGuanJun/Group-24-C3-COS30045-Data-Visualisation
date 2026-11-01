@@ -1,15 +1,3 @@
-/**
- * constants.js
- * Shared constants, colourblind-safe palettes (Okabe-Ito & Paul Tol), and formatting helpers
- * for the State & National Trends visualisations (state_by_year.csv).
- *
- * GenAI Acknowledgement:
- * Portions of structure and Okabe-Ito colourblind-safe hex mappings were refined with AI assistance
- * (Prompts: configure accessible Okabe-Ito 8-state palette and shared formatting constants for D3 v7).
- */
-
-// Modified Okabe-Ito & Paul Tol colourblind-safe categorical palette for 8 Australian jurisdictions.
-// Tested for Deuteranopia, Protanopia, and Tritanopia contrast on white (#ffffff) backgrounds.
 const STATE_PALETTE = {
     NSW: "#0072B2", // Strong Blue
     Vic: "#D55E00", // Vermilion / Burnt Orange

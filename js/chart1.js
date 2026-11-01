@@ -1,18 +1,3 @@
-/**
- * chart1.js
- * Renders Chart 1 (Annual Trend Line Chart) and Chart 2 (State Comparison Bar Chart)
- * from `data/state_by_year.csv`.
- *
- * Accessibility & Design Features:
- * - Uses Okabe-Ito colourblind-safe state colours + stroke dash patterns (dual encoding).
- * - Adds ARIA roles/labels on SVG containers for screen-reader support.
- * - Uses smooth D3 transitions where appropriate without visual clutter.
- *
- * GenAI Acknowledgement:
- * D3 v7 scale setup, multi-line/indexed mode calculations, and ARIA attributes were developed
- * and refined with AI assistance (Prompts: build single/multi/indexed D3 line chart and sorted bar chart).
- */
-
 function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
     const container = d3.select("#chart-1");
     container.selectAll("*").remove();

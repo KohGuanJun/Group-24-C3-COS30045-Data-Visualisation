@@ -1,13 +1,3 @@
-/**
- * main.js
- * State management, CSV loading (`data/state_by_year.csv`), dynamic Key Findings generation,
- * and cross-chart interaction coordination for the State & National Trends view.
- *
- * GenAI Acknowledgement:
- * State management structure, weighted average calculation, and dynamic insight text logic
- * were developed with AI assistance (Prompts: coordinate D3 dashboard filters and dynamic data findings).
- */
-
 const filterState = {
     year: "All",
     state: "All",

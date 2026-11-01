@@ -1,15 +1,3 @@
-/**
- * demographics.js
- * Renders Road User, Remoteness, Age Group, and Sex charts from KNIME cleaned CSV.
- *
- * Accessibility & Design Features:
- * - SVG <title> and <desc> elements for screen-reader compatibility (W8).
- * - tabindex, role="button", aria-label on interactive bars and donut slices (W8).
- * - Enter/Space keydown handlers mirror click behaviour (W8).
- * - Smooth D3 transitions on bar width/height updates (W10).
- * - Dynamic Key Finding banner summarising top insights from current data (W10).
- */
-
 let rawDemoData = [];
 
 function getDemoMetricValue(rows, metric) {

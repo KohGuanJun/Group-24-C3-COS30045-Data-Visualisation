@@ -1,18 +1,3 @@
-/**
- * chart2.js
- * Renders Chart 3 (Average Bed Days Horizontal Bar Chart with National Benchmark)
- * and Chart 4 (State Share Donut Chart with Accessible Okabe-Ito Palette).
- *
- * Accessibility & Design Features:
- * - High-contrast dark charcoal benchmark line (replaces red dashed line for CVD safety).
- * - Distinct Okabe-Ito 8-colour palette + white slice borders on Donut chart so every state
- *   is clearly distinguishable for colourblind and low-vision users.
- *
- * GenAI Acknowledgement:
- * D3 v7 horizontal bar benchmark layout and responsive donut legend positioning were refined
- * with AI assistance (Prompts: accessible benchmark bar chart and Okabe-Ito donut chart in D3 v7).
- */
-
 function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSelectState) {
     const container = d3.select("#chart-3");
     container.selectAll("*").remove();

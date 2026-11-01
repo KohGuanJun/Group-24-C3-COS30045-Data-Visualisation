@@ -1,12 +1,3 @@
-/**
- * first_nations.js
- * Renders 4 interactive D3 v7 charts for First Nations Insights:
- * 1. Trend Line Chart (First Nations vs Non-Indigenous annual trajectory)
- * 2. Remoteness Donut Chart (with click-to-highlight & toggle)
- * 3. Age Group Column Chart (with multi-year d3.sum, click-to-highlight & toggle)
- * 4. Road User Horizontal Bar Chart (with multi-year d3.sum, wide left margin, click-to-highlight & toggle)
- */
-
 let rawFnData = [];
 const fnSelection = {
     category: null, // "Remoteness" | "Age" | "Road User"
