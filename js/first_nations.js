@@ -267,13 +267,20 @@ function renderFnAgeChart(data) {
     const ageGroups = ["0-7", "8-16", "17-25", "26-39", "40-64", "65+"];
     const statuses = ["First Nations people", "Non-Indigenous"];
 
+    // FIX: Use d3.sum instead of .find() so all years are added together
     const summary = ageGroups.map(grp => {
-        const rowFn = ageData.find(d => d.Sub_Category === grp && d["First Nations status"] === "First Nations people");
-        const rowNon = ageData.find(d => d.Sub_Category === grp && d["First Nations status"] === "Non-Indigenous");
+        const fnVal = d3.sum(
+            ageData.filter(d => d.Sub_Category === grp && d["First Nations status"] === "First Nations people"),
+            d => d["Sum(Hospitalisations)"] || 0
+        );
+        const nonVal = d3.sum(
+            ageData.filter(d => d.Sub_Category === grp && d["First Nations status"] === "Non-Indigenous"),
+            d => d["Sum(Hospitalisations)"] || 0
+        );
         return {
             age: grp,
-            "First Nations people": rowFn ? rowFn["Sum(Hospitalisations)"] : 0,
-            "Non-Indigenous": rowNon ? rowNon["Sum(Hospitalisations)"] : 0
+            "First Nations people": fnVal,
+            "Non-Indigenous": nonVal
         };
     });
 
@@ -334,9 +341,6 @@ function renderFnAgeChart(data) {
         .attr("height", d => innerHeight - y(d.val))
         .attr("rx", 2)
         .attr("fill", d => colorScale[d.status])
-        .attr("stroke", d => (fnSelection.category === "Age" && fnSelection.value === d.age) ? "#111827" : "none")
-        .attr("stroke-width", 2)
-        .attr("opacity", d => (!fnSelection.value || (fnSelection.category === "Age" && fnSelection.value === d.age)) ? 1 : 0.25)
         .style("cursor", "pointer")
         .on("mouseenter", (event, d) => {
             tooltip.classed("hidden", false)
@@ -345,12 +349,7 @@ function renderFnAgeChart(data) {
         .on("mousemove", (event) => {
             tooltip.style("left", `${event.pageX + 12}px`).style("top", `${event.pageY - 28}px`);
         })
-        .on("mouseleave", () => tooltip.classed("hidden", true))
-        .on("click", (event, d) => {
-            fnSelection.category = "Age";
-            fnSelection.value = fnSelection.value === d.age ? null : d.age;
-            initFirstNationsCharts();
-        });
+        .on("mouseleave", () => tooltip.classed("hidden", true));
 }
 
 // 4. Road User Horizontal Bar Chart
@@ -362,18 +361,22 @@ function renderFnRoadUserChart(data) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 18, right: 30, bottom: 28, left: 230 }; // Wide margin for long labels
+    const margin = { top: 18, right: 30, bottom: 28, left: 230 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
     const ruData = data.filter(d => d.Category === "Road User");
     const roadUsers = Array.from(new Set(ruData.map(d => d.Sub_Category)));
 
+    // FIX: Use d3.sum instead of .find()
     const summary = roadUsers.map(ru => {
-        const rowFn = ruData.find(d => d.Sub_Category === ru && d["First Nations status"] === "First Nations people");
+        const totalVal = d3.sum(
+            ruData.filter(d => d.Sub_Category === ru && d["First Nations status"] === "First Nations people"),
+            d => d["Sum(Hospitalisations)"] || 0
+        );
         return {
             roadUser: ru,
-            val: rowFn ? rowFn["Sum(Hospitalisations)"] : 0
+            val: totalVal
         };
     }).sort((a, b) => d3.descending(a.val, b.val));
 
@@ -417,9 +420,6 @@ function renderFnRoadUserChart(data) {
         .attr("width", d => x(d.val))
         .attr("rx", 3)
         .attr("fill", "#009E73")
-        .attr("stroke", d => (fnSelection.category === "Road User" && fnSelection.value === d.roadUser) ? "#111827" : "none")
-        .attr("stroke-width", 2)
-        .attr("opacity", d => (!fnSelection.value || (fnSelection.category === "Road User" && fnSelection.value === d.roadUser)) ? 1 : 0.25)
         .style("cursor", "pointer")
         .on("mouseenter", (event, d) => {
             tooltip.classed("hidden", false)
@@ -428,12 +428,7 @@ function renderFnRoadUserChart(data) {
         .on("mousemove", (event) => {
             tooltip.style("left", `${event.pageX + 12}px`).style("top", `${event.pageY - 28}px`);
         })
-        .on("mouseleave", () => tooltip.classed("hidden", true))
-        .on("click", (event, d) => {
-            fnSelection.category = "Road User";
-            fnSelection.value = fnSelection.value === d.roadUser ? null : d.roadUser;
-            initFirstNationsCharts();
-        });
+        .on("mouseleave", () => tooltip.classed("hidden", true));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
