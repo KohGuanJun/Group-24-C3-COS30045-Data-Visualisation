@@ -1,10 +1,10 @@
 /**
  * first_nations.js
  * Renders 4 interactive D3 v7 charts for First Nations Insights:
- * 1. Trend Line Chart (First Nations vs Non-Indigenous)
- * 2. Remoteness Donut Chart (with interactive cross-filtering)
- * 3. Age Group Column Chart (with interactive cross-filtering)
- * 4. Road User Horizontal Bar Chart (with wide left margin & cross-filtering)
+ * 1. Trend Line Chart (First Nations vs Non-Indigenous annual trajectory)
+ * 2. Remoteness Donut Chart (with click-to-highlight & toggle)
+ * 3. Age Group Column Chart (with multi-year d3.sum, click-to-highlight & toggle)
+ * 4. Road User Horizontal Bar Chart (with multi-year d3.sum, wide left margin, click-to-highlight & toggle)
  */
 
 let rawFnData = [];
@@ -54,10 +54,10 @@ function updateFnKeyFinding(data, yearVal) {
     const fnTotal = d3.sum(fnRows, d => d["Sum(Hospitalisations)"] || 0);
 
     findingBar.innerHTML = `<strong>First Nations Insights (${periodText}):</strong> Recorded <strong>${d3.format(",")(fnTotal)}</strong> First Nations hospitalisations. ` +
-        `<em>Tip: Click any bar or slice to highlight and filter across charts.</em>`;
+        `<em>Tip: Click any bar or slice to highlight and focus on a specific group.</em>`;
 }
 
-// 1. Trend Line Chart
+// 1. Annual Trend Line Chart
 function renderFnTrendChart(data, yearVal) {
     const container = d3.select("#fn-chart-trend");
     if (container.empty()) return;
@@ -70,7 +70,7 @@ function renderFnTrendChart(data, yearVal) {
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    // Always use full dataset for the trend line context
+    // Use rawFnData so the trend line preserves full historical context across 2011–2021
     let activeData = rawFnData.filter(d => d.Category === "Age");
     if (fnSelection.value) {
         activeData = rawFnData.filter(d => d.Category === fnSelection.category && d.Sub_Category === fnSelection.value);
@@ -92,21 +92,26 @@ function renderFnTrendChart(data, yearVal) {
 
     const svg = container.append("svg")
         .attr("role", "img")
+        .attr("aria-labelledby", "fn-trend-title fn-trend-desc")
         .attr("viewBox", `0 0 ${width} ${height}`)
         .attr("width", "100%")
         .attr("height", "100%");
+
+    svg.append("title").attr("id", "fn-trend-title").text("First Nations vs Non-Indigenous Annual Trend");
+    svg.append("desc").attr("id", "fn-trend-desc").text("Line chart comparing annual hospitalised injuries between First Nations people and Non-Indigenous Australians from 2011 to 2021.");
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
     const x = d3.scalePoint().domain(years).range([0, innerWidth]).padding(0.25);
     const y = d3.scaleLinear().domain([0, maxVal * 1.15]).nice().range([innerHeight, 0]);
 
-    // Gridlines & Axes
+    // Gridlines
     g.append("g")
         .call(d3.axisLeft(y).ticks(5).tickSize(-innerWidth).tickFormat(""))
         .call(g => g.select(".domain").remove())
         .call(g => g.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"));
 
+    // X-Axis
     g.append("g")
         .attr("transform", `translate(0,${innerHeight})`)
         .call(d3.axisBottom(x).tickSizeOuter(0))
@@ -114,8 +119,9 @@ function renderFnTrendChart(data, yearVal) {
         .selectAll("text")
         .style("font-size", "11px")
         .style("fill", "#4b5563")
-        .style("font-weight", d => String(d) === String(yearVal) ? "700" : "400"); // Bold the selected year on x-axis!
+        .style("font-weight", d => String(d) === String(yearVal) ? "700" : "400");
 
+    // Y-Axis
     g.append("g")
         .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format(",")))
         .call(g => g.select(".domain").remove())
@@ -133,7 +139,6 @@ function renderFnTrendChart(data, yearVal) {
     const tooltip = d3.select("#tooltip");
 
     series.forEach(s => {
-        // Draw the background trend line
         g.append("path")
             .datum(s.values)
             .attr("fill", "none")
@@ -142,15 +147,14 @@ function renderFnTrendChart(data, yearVal) {
             .attr("opacity", 0.85)
             .attr("d", line);
 
-        // Draw data points, making the selected year's dot much larger and prominent!
         g.selectAll(`.dot-${s.status.replace(/\s+/g, '')}`)
             .data(s.values)
             .join("circle")
             .attr("cx", d => x(d.year))
             .attr("cy", d => y(d.val))
-            .attr("r", d => String(d.year) === String(yearVal) ? 7 : 4.5) // Larger radius if it matches the selected year!
+            .attr("r", d => String(d.year) === String(yearVal) ? 7 : 4.5)
             .attr("fill", colorScale[s.status])
-            .attr("stroke", d => String(d.year) === String(yearVal) ? "#111827" : "#ffffff") // Dark border for selected year
+            .attr("stroke", d => String(d.year) === String(yearVal) ? "#111827" : "#ffffff")
             .attr("stroke-width", d => String(d.year) === String(yearVal) ? 2.5 : 2)
             .style("cursor", "pointer")
             .on("mouseenter", (event, d) => {
@@ -161,6 +165,13 @@ function renderFnTrendChart(data, yearVal) {
                 tooltip.style("left", `${event.pageX + 12}px`).style("top", `${event.pageY - 28}px`);
             })
             .on("mouseleave", () => tooltip.classed("hidden", true));
+    });
+
+    const legend = svg.append("g").attr("transform", `translate(${margin.left + 10}, ${margin.top + 2})`);
+    statuses.forEach((st, i) => {
+        const lg = legend.append("g").attr("transform", `translate(${i * 130}, 0)`);
+        lg.append("rect").attr("width", 10).attr("height", 10).attr("fill", colorScale[st]).attr("rx", 2);
+        lg.append("text").attr("x", 14).attr("y", 9).style("font-size", "10.5px").style("fill", "#374151").text(st);
     });
 }
 
@@ -183,9 +194,13 @@ function renderFnRemotenessChart(data) {
 
     const svg = container.append("svg")
         .attr("role", "img")
+        .attr("aria-labelledby", "fn-rem-title fn-rem-desc")
         .attr("viewBox", `0 0 ${width} ${height}`)
         .attr("width", "100%")
         .attr("height", "100%");
+
+    svg.append("title").attr("id", "fn-rem-title").text("First Nations Share by Remoteness Area");
+    svg.append("desc").attr("id", "fn-rem-desc").text("Donut chart showing First Nations hospitalisations across remoteness areas.");
 
     const radius = Math.min(width * 0.42, height) / 2 - 12;
     const centerX = width * 0.28;
@@ -201,14 +216,16 @@ function renderFnRemotenessChart(data) {
     const arc = d3.arc().innerRadius(radius * 0.54).outerRadius(radius);
     const tooltip = d3.select("#tooltip");
 
+    const isRemSelected = fnSelection.category === "Remoteness";
+
     g.selectAll("path")
         .data(pie(summary))
         .join("path")
         .attr("d", arc)
         .attr("fill", d => color(d.data.key))
-        .attr("stroke", d => fnSelection.value === d.data.key ? "#111827" : "#ffffff")
-        .attr("stroke-width", d => fnSelection.value === d.data.key ? 3 : 2.2)
-        .attr("opacity", d => (!fnSelection.value || fnSelection.value === d.data.key) ? 1 : 0.25)
+        .attr("stroke", d => (isRemSelected && fnSelection.value === d.data.key) ? "#111827" : "#ffffff")
+        .attr("stroke-width", d => (isRemSelected && fnSelection.value === d.data.key) ? 3 : 2.2)
+        .attr("opacity", d => (!isRemSelected || fnSelection.value === d.data.key) ? 1 : 0.25)
         .style("cursor", "pointer")
         .on("mouseenter", (event, d) => {
             const pct = ((d.data.val / total) * 100).toFixed(1);
@@ -220,8 +237,13 @@ function renderFnRemotenessChart(data) {
         })
         .on("mouseleave", () => tooltip.classed("hidden", true))
         .on("click", (event, d) => {
-            fnSelection.category = "Remoteness";
-            fnSelection.value = fnSelection.value === d.data.key ? null : d.data.key;
+            if (fnSelection.category === "Remoteness" && fnSelection.value === d.data.key) {
+                fnSelection.category = null;
+                fnSelection.value = null;
+            } else {
+                fnSelection.category = "Remoteness";
+                fnSelection.value = d.data.key;
+            }
             initFirstNationsCharts();
         });
 
@@ -237,11 +259,16 @@ function renderFnRemotenessChart(data) {
         .join("g")
         .attr("class", "legend-item")
         .attr("transform", (d, i) => `translate(0, ${i * rowSpacing})`)
-        .attr("opacity", d => (!fnSelection.value || fnSelection.value === d.key) ? 1 : 0.35)
+        .attr("opacity", d => (!isRemSelected || fnSelection.value === d.key) ? 1 : 0.35)
         .style("cursor", "pointer")
         .on("click", (event, d) => {
-            fnSelection.category = "Remoteness";
-            fnSelection.value = fnSelection.value === d.key ? null : d.key;
+            if (fnSelection.category === "Remoteness" && fnSelection.value === d.key) {
+                fnSelection.category = null;
+                fnSelection.value = null;
+            } else {
+                fnSelection.category = "Remoteness";
+                fnSelection.value = d.key;
+            }
             initFirstNationsCharts();
         });
 
@@ -250,7 +277,7 @@ function renderFnRemotenessChart(data) {
     rows.append("text").attr("x", 185).attr("y", 0).attr("text-anchor", "end").style("font-size", "11.5px").style("font-weight", "600").style("fill", "#374151").text(d => `${d3.format(",")(d.val)} (${((d.val / total) * 100).toFixed(1)}%)`);
 }
 
-// 3. Age Group Column Chart
+// 3. Age Group Column Chart (with multi-year d3.sum aggregation & click-to-highlight)
 function renderFnAgeChart(data) {
     const container = d3.select("#fn-chart-age");
     if (container.empty()) return;
@@ -267,7 +294,7 @@ function renderFnAgeChart(data) {
     const ageGroups = ["0-7", "8-16", "17-25", "26-39", "40-64", "65+"];
     const statuses = ["First Nations people", "Non-Indigenous"];
 
-    // FIX: Use d3.sum instead of .find() so all years are added together
+    // Aggregates across all years in active view using d3.sum
     const summary = ageGroups.map(grp => {
         const fnVal = d3.sum(
             ageData.filter(d => d.Sub_Category === grp && d["First Nations status"] === "First Nations people"),
@@ -286,9 +313,13 @@ function renderFnAgeChart(data) {
 
     const svg = container.append("svg")
         .attr("role", "img")
+        .attr("aria-labelledby", "fn-age-title fn-age-desc")
         .attr("viewBox", `0 0 ${width} ${height}`)
         .attr("width", "100%")
         .attr("height", "100%");
+
+    svg.append("title").attr("id", "fn-age-title").text("Injuries by Age Group Comparison");
+    svg.append("desc").attr("id", "fn-age-desc").text("Grouped column chart comparing hospitalisations across age brackets.");
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -326,6 +357,7 @@ function renderFnAgeChart(data) {
     };
 
     const tooltip = d3.select("#tooltip");
+    const isAgeSelected = fnSelection.category === "Age";
 
     const ageGroupsEl = g.selectAll(".age-group")
         .data(summary)
@@ -341,6 +373,9 @@ function renderFnAgeChart(data) {
         .attr("height", d => innerHeight - y(d.val))
         .attr("rx", 2)
         .attr("fill", d => colorScale[d.status])
+        .attr("stroke", d => (isAgeSelected && fnSelection.value === d.age) ? "#111827" : "none")
+        .attr("stroke-width", 2)
+        .attr("opacity", d => (!isAgeSelected || fnSelection.value === d.age) ? 1 : 0.25)
         .style("cursor", "pointer")
         .on("mouseenter", (event, d) => {
             tooltip.classed("hidden", false)
@@ -349,10 +384,20 @@ function renderFnAgeChart(data) {
         .on("mousemove", (event) => {
             tooltip.style("left", `${event.pageX + 12}px`).style("top", `${event.pageY - 28}px`);
         })
-        .on("mouseleave", () => tooltip.classed("hidden", true));
+        .on("mouseleave", () => tooltip.classed("hidden", true))
+        .on("click", (event, d) => {
+            if (fnSelection.category === "Age" && fnSelection.value === d.age) {
+                fnSelection.category = null;
+                fnSelection.value = null;
+            } else {
+                fnSelection.category = "Age";
+                fnSelection.value = d.age;
+            }
+            initFirstNationsCharts();
+        });
 }
 
-// 4. Road User Horizontal Bar Chart
+// 4. Road User Horizontal Bar Chart (with multi-year d3.sum aggregation, wide margin & click-to-highlight)
 function renderFnRoadUserChart(data) {
     const container = d3.select("#fn-chart-roaduser");
     if (container.empty()) return;
@@ -361,14 +406,14 @@ function renderFnRoadUserChart(data) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 18, right: 30, bottom: 28, left: 230 };
+    const margin = { top: 18, right: 30, bottom: 28, left: 230 }; // Wide margin for labels
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
     const ruData = data.filter(d => d.Category === "Road User");
     const roadUsers = Array.from(new Set(ruData.map(d => d.Sub_Category)));
 
-    // FIX: Use d3.sum instead of .find()
+    // Aggregates across all years in active view using d3.sum
     const summary = roadUsers.map(ru => {
         const totalVal = d3.sum(
             ruData.filter(d => d.Sub_Category === ru && d["First Nations status"] === "First Nations people"),
@@ -382,9 +427,13 @@ function renderFnRoadUserChart(data) {
 
     const svg = container.append("svg")
         .attr("role", "img")
+        .attr("aria-labelledby", "fn-ru-title fn-ru-desc")
         .attr("viewBox", `0 0 ${width} ${height}`)
         .attr("width", "100%")
         .attr("height", "100%");
+
+    svg.append("title").attr("id", "fn-ru-title").text("First Nations Injuries by Road User Type");
+    svg.append("desc").attr("id", "fn-ru-desc").text("Horizontal bar chart showing road crash injuries by road user type.");
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -409,6 +458,7 @@ function renderFnRoadUserChart(data) {
         .style("fill", "#4b5563");
 
     const tooltip = d3.select("#tooltip");
+    const isRuSelected = fnSelection.category === "Road User";
 
     g.selectAll(".fn-ru-bar")
         .data(summary)
@@ -420,6 +470,9 @@ function renderFnRoadUserChart(data) {
         .attr("width", d => x(d.val))
         .attr("rx", 3)
         .attr("fill", "#009E73")
+        .attr("stroke", d => (isRuSelected && fnSelection.value === d.roadUser) ? "#111827" : "none")
+        .attr("stroke-width", 2)
+        .attr("opacity", d => (!isRuSelected || fnSelection.value === d.roadUser) ? 1 : 0.25)
         .style("cursor", "pointer")
         .on("mouseenter", (event, d) => {
             tooltip.classed("hidden", false)
@@ -428,23 +481,45 @@ function renderFnRoadUserChart(data) {
         .on("mousemove", (event) => {
             tooltip.style("left", `${event.pageX + 12}px`).style("top", `${event.pageY - 28}px`);
         })
-        .on("mouseleave", () => tooltip.classed("hidden", true));
+        .on("mouseleave", () => tooltip.classed("hidden", true))
+        .on("click", (event, d) => {
+            if (fnSelection.category === "Road User" && fnSelection.value === d.roadUser) {
+                fnSelection.category = null;
+                fnSelection.value = null;
+            } else {
+                fnSelection.category = "Road User";
+                fnSelection.value = d.roadUser;
+            }
+            initFirstNationsCharts();
+        });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    d3.csv("first_nations_combined.csv", d3.autoType)
+    d3.csv("First_Nations_Combined.csv", d3.autoType)
         .then(data => {
             rawFnData = data;
             initFirstNationsCharts();
         })
-        .catch(err => {
-            d3.csv("data/first_nations_combined.csv", d3.autoType)
+        .catch(() => {
+            d3.csv("first_nations_combined.csv", d3.autoType)
                 .then(data => {
                     rawFnData = data;
                     initFirstNationsCharts();
                 })
-                .catch(err2 => {
-                    console.warn("Could not load first_nations_combined.csv", err2);
+                .catch(err => {
+                    d3.csv("data/First_Nations_Combined.csv", d3.autoType)
+                        .then(data => {
+                            rawFnData = data;
+                            initFirstNationsCharts();
+                        })
+                        .catch(err2 => {
+                            d3.csv("data/first_nations_combined.csv", d3.autoType)
+                                .then(data => {
+                                    rawFnData = data;
+                                    initFirstNationsCharts();
+                                })
+                                .catch(err3 => console.warn("Could not load First Nations dataset", err3));
+                        });
                 });
         });
 
