@@ -526,7 +526,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
             isShare
                 ? `${d.plotVal.toFixed(1)}%`
                 : metric === "Average_Bed_Days"
-                ? d.plotVal.toFixed(1)
+                ? d.plotVal.toFixed(2)
                 : d3.format(",.0f")(d.plotVal)
         );
 }

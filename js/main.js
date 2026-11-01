@@ -108,7 +108,7 @@ function updateKPIsAndFinding(stateSummary, nationalAvgBedDays) {
             const top3Pct = ((top3Sum / natTotal) * 100).toFixed(1);
 
             findingEl.innerHTML =
-                `<strong>Key Finding (${periodLabel}):</strong> Populous eastern states (<strong>NSW, Vic, Qld</strong>) account for <strong>${top3Pct}%</strong> of raw hospitalisations (led by <strong>${topVol.State}</strong> with ${d3.format(",")(topVol.Hospitalised_Injuries)}), whereas smaller/remote jurisdictions experience longer hospital stays—led by <strong>${topSev.State} (${topSev.Average_Bed_Days.toFixed(1)} bed days</strong> vs ${nationalAvgBedDays.toFixed(1)}d national avg), reflecting higher crash severity.`;
+                `<strong>Key Finding (${periodLabel}):</strong> Populous eastern states (<strong>NSW, Vic, Qld</strong>) account for <strong>${top3Pct}%</strong> of raw hospitalisations (led by <strong>${topVol.State}</strong> with ${d3.format(",")(topVol.Hospitalised_Injuries)}), whereas smaller/remote jurisdictions experience longer hospital stays—led by <strong>${topSev.State} (${topSev.Average_Bed_Days.toFixed(2)} bed days</strong> vs ${nationalAvgBedDays.toFixed(2)}d national avg), reflecting higher crash severity.`;
         } else {
             const stObj = stateSummary.find((d) => d.State === filterState.state);
             const sharePct = stObj ? ((stObj.Hospitalised_Injuries / natTotal) * 100).toFixed(1) : "0.0";

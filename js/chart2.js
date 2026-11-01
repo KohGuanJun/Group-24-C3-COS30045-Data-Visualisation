@@ -20,7 +20,7 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 20, right: 56, bottom: 26, left: 48 };
+    const margin = { top: 20, right: 62, bottom: 26, left: 48 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -138,7 +138,7 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
         .attr("class", "bed-label")
         .attr("x", (d) => x(d.Average_Bed_Days) + 6)
         .attr("y", (d) => y(d.State) + y.bandwidth() / 2 + 4)
-        .text((d) => `${d.Average_Bed_Days.toFixed(1)}d`)
+        .text((d) => `${d.Average_Bed_Days.toFixed(2)}d`)
         .style("font-size", "11px")
         .style("font-weight", "700")
         .style("fill", "#1f2937");
@@ -161,7 +161,7 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
             .style("font-size", "10.5px")
             .style("font-weight", "700")
             .style("fill", "#111827")
-            .text(`Avg: ${nationalAvgBedDays.toFixed(1)}d`);
+            .text(`Avg: ${nationalAvgBedDays.toFixed(2)}d`);
     }
 }
 
