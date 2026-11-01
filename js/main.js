@@ -184,6 +184,21 @@ function updateDashboard() {
 
 document.addEventListener("DOMContentLoaded", () => {
     // Tab switching
+    function updateFilterBarVisibility(activeTab) {
+        const stateField = document.getElementById("field-state");
+        const roadUserField = document.getElementById("field-road-user");
+        if (!stateField || !roadUserField) return;
+
+        if (activeTab === "demographics") {
+            stateField.style.display = "none";
+            roadUserField.style.display = "flex";
+        } else {
+            // Overview (State & National Trends) and other views
+            stateField.style.display = "flex";
+            roadUserField.style.display = "none";
+        }
+    }
+
     document.querySelectorAll(".tab-btn").forEach((tab) => {
         tab.addEventListener("click", () => {
             document.querySelectorAll(".tab-btn").forEach((t) => t.classList.remove("active"));
@@ -192,6 +207,8 @@ document.addEventListener("DOMContentLoaded", () => {
             tab.classList.add("active");
             const target = document.getElementById(`view-${tab.dataset.view}`);
             if (target) target.classList.add("active");
+
+            updateFilterBarVisibility(tab.dataset.view);
         });
     });
 
@@ -245,6 +262,8 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("filter-metric").value = "Hospitalised_Injuries";
         document.getElementById("filter-trend-mode").value = "single";
         document.getElementById("filter-sort").value = "value-desc";
+        const ruSelect = document.getElementById("filter-road-user");
+        if (ruSelect) ruSelect.value = "All";
 
         document.querySelectorAll("#toggle-bar-mode .mini-btn").forEach((b) => {
             b.classList.toggle("active", b.dataset.barmode === "raw");

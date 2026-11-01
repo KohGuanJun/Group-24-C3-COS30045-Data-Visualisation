@@ -8,11 +8,13 @@
  
     const COL_REMOTE = "ABS remoteness area";
     const LABELS = { "Road user": "Road user", [COL_REMOTE]: "Remoteness", "Age group": "Age group", "Sex": "Sex" };
+    // Active selection state for each category
     const sel = {};
     Object.keys(LABELS).forEach((c) => (sel[c] = null));
  
     const isOn = (selected, key) => selected === null || selected === key;
  
+    // Filter data based on active cross-filter selections
     function rowsFor(data, ownCol) {
         return data.filter((d) => Object.keys(sel).every((c) => c === ownCol || sel[c] === null || d[c] === sel[c]));
     }
@@ -21,16 +23,25 @@
         if (sel[col] !== null && !rowsFor(data, col).some((d) => d[col] === sel[col])) sel[col] = null;
     }
  
+    // Toggle selection on/off when a bar or slice is clicked
     function toggle(col, key) {
         sel[col] = sel[col] === key ? null : key;
+        if (col === "Road user") {
+            const ruSelect = document.getElementById("filter-road-user");
+            if (ruSelect) ruSelect.value = sel[col] || "All";
+        }
         window.updateDemographicsCharts();
     }
  
+    // Clear all cross-filter selections
     function clearAll() {
         Object.keys(sel).forEach((c) => (sel[c] = null));
+        const ruSelect = document.getElementById("filter-road-user");
+        if (ruSelect) ruSelect.value = "All";
         window.updateDemographicsCharts();
     }
  
+    // Update the selection hint banner (Tip bar)
     function updateBar() {
         const view = document.getElementById("view-demographics");
         if (!view) return;
@@ -53,6 +64,7 @@
         }
     }
  
+    // Add click events and highlight/dim styles to bar charts
     function decorateBars(selector, col) {
         const selected = sel[col];
         const root = d3.select(selector);
@@ -77,6 +89,7 @@
             .on("click", (event, d) => toggle(col, d));
     }
  
+    // Add click events and highlight/dim styles to remoteness donut chart
     function decorateDonut(selector) {
         const selected = sel[COL_REMOTE];
         const root = d3.select(selector);
@@ -94,6 +107,7 @@
             .on("click", (event, d) => toggle(COL_REMOTE, d.key));
     }
  
+    // Wrap original chart render functions to attach cross-filtering
     const origH = window.renderHorizontalBar;
     const origV = window.renderVerticalBar;
     const origD = window.renderRemotenessDonut;
@@ -119,7 +133,20 @@
         updateBar();
     };
  
+    // Event Listeners: Reset button and top filter dropdown synchronization
     const resetBtn = document.getElementById("btn-reset-filters");
-    if (resetBtn) resetBtn.addEventListener("click", () => Object.keys(sel).forEach((c) => (sel[c] = null)));
+    if (resetBtn) resetBtn.addEventListener("click", () => {
+        Object.keys(sel).forEach((c) => (sel[c] = null));
+        const ruSelect = document.getElementById("filter-road-user");
+        if (ruSelect) ruSelect.value = "All";
+    });
+
+    const roadUserSelect = document.getElementById("filter-road-user");
+    if (roadUserSelect) {
+        roadUserSelect.addEventListener("change", (e) => {
+            sel["Road user"] = e.target.value === "All" ? null : e.target.value;
+            window.updateDemographicsCharts();
+        });
+    }
 })();
  

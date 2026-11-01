@@ -1,5 +1,6 @@
 let rawDemoData = [];
 
+// Helper: Calculate injury count, bed days, or average bed days
 function getDemoMetricValue(rows, metric) {
     const injuries = d3.sum(rows, (d) => d["Sum(Hospitalisations)"] || d.Hospitalisations || 0);
     const bedDays = d3.sum(rows, (d) => d["Sum(Bed days)"] || d["Bed days"] || 0);
@@ -8,7 +9,7 @@ function getDemoMetricValue(rows, metric) {
     return injuries;
 }
 
-// ── Dynamic Key Finding banner for Demographics tab (W10) ─────────────────────
+// Dynamic Key Finding Banner: Highlights top road user, age, and remoteness
 function updateDemoKeyFinding(filtered, metricVal) {
     const view = document.getElementById("view-demographics");
     if (!view) return;
@@ -79,6 +80,7 @@ function updateDemoKeyFinding(filtered, metricVal) {
     insightBar.innerHTML = html + parts.join(" · ");
 }
 
+// Update all 4 demographic charts based on active filters (Year, Road User, Metric)
 function updateDemographicsCharts() {
     if (!rawDemoData.length) return;
 
@@ -102,10 +104,15 @@ function updateDemographicsCharts() {
     if (t3) t3.textContent = `${metricText} by Age Group (${periodText})`;
     if (t4) t4.textContent = `${metricText} by Sex (${periodText})`;
 
-    // Filter dataset by selected year
-    const filtered = yearVal === "All"
-        ? rawDemoData
-        : rawDemoData.filter((d) => String(d["Calendar year"]) === String(yearVal));
+    // Filter dataset by selected year and road user
+    const roadUserEl = document.getElementById("filter-road-user");
+    const roadUserVal = roadUserEl ? roadUserEl.value : "All";
+
+    const filtered = rawDemoData.filter((d) => {
+        const matchYear = yearVal === "All" || String(d["Calendar year"]) === String(yearVal);
+        const matchRoadUser = roadUserVal === "All" || d["Road user"] === roadUserVal;
+        return matchYear && matchRoadUser;
+    });
 
     renderHorizontalBar("#chart-road-user", filtered, "Road user", metricVal, "#0072B2");
     renderRemotenessDonut("#chart-remoteness", filtered, metricVal);
@@ -115,6 +122,7 @@ function updateDemographicsCharts() {
     updateDemoKeyFinding(filtered, metricVal);
 }
 
+// Chart 1: Horizontal Bar Chart (Road User breakdown)
 function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
     const container = d3.select(selector);
     if (container.empty()) return;
@@ -123,7 +131,7 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
     const node = container.node();
     const width = node.clientWidth || 560;
     const height = node.clientHeight || 290;
-    const margin = { top: 16, right: 65, bottom: 28, left: 155 };
+    const margin = { top: 16, right: 65, bottom: 28, left: 190 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -175,9 +183,12 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
         .call(d3.axisLeft(y).tickSize(0))
         .call((g) => g.select(".domain").remove())
         .selectAll("text")
-        .style("font-size", "11px")
+        .style("font-size", "10.5px")
         .style("font-weight", "600")
-        .style("fill", "#374151");
+        .style("fill", "#374151")
+        .each(function(d) {
+            d3.select(this).append("title").text(d);
+        });
 
     const tooltip = d3.select("#tooltip");
     const fmt = metric === "Average_Bed_Days" ? d3.format(".2f") : d3.format(",.0f");
@@ -228,6 +239,7 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
         .style("opacity", 1);
 }
 
+// Charts 3 & 4: Vertical Bar Charts (Age Group and Sex breakdowns)
 function renderVerticalBar(selector, data, groupCol, metric, barColor) {
     const container = d3.select(selector);
     if (container.empty()) return;
@@ -351,6 +363,7 @@ function renderVerticalBar(selector, data, groupCol, metric, barColor) {
         .style("opacity", 1);
 }
 
+// Chart 2: Donut Chart (ABS Remoteness Area share)
 function renderRemotenessDonut(selector, data, metric) {
     const container = d3.select(selector);
     if (container.empty()) return;
@@ -487,6 +500,7 @@ function renderRemotenessDonut(selector, data, metric) {
         });
 }
 
+// Initialization: Load CSV data and bind event listeners (Tabs, Filters, Reset, Resize)
 document.addEventListener("DOMContentLoaded", () => {
     d3.csv("data/demographics.csv", d3.autoType)
         .then((data) => {
@@ -508,6 +522,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (yearSelect) yearSelect.addEventListener("change", updateDemographicsCharts);
     if (metricSelect) metricSelect.addEventListener("change", updateDemographicsCharts);
+    const roadUserSelect = document.getElementById("filter-road-user");
+    if (roadUserSelect) roadUserSelect.addEventListener("change", updateDemographicsCharts);
     if (resetBtn) resetBtn.addEventListener("click", () => setTimeout(updateDemographicsCharts, 50));
 
     window.addEventListener("resize", updateDemographicsCharts);
