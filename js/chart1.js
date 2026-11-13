@@ -5,7 +5,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 18, right: 48, bottom: 30, left: 72 };
+    const margin = { top: 18, right: 60, bottom: 30, left: 78 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -82,7 +82,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .call(d3.axisBottom(x).tickSizeOuter(0))
             .call((g) => g.select(".domain").attr("stroke", "#cbd5e1"))
             .selectAll("text")
-            .style("font-size", "13px")
+            .style("font-size", "14px")
             .style("font-weight", (d) => (String(d) === String(filterState.year) ? "700" : "500"))
             .style("fill", (d) => (String(d) === String(filterState.year) ? "#111827" : "#4b5563"));
 
@@ -93,7 +93,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .call((g) => g.select(".domain").remove())
             .call((g) => g.selectAll("line").remove())
             .selectAll("text")
-            .style("font-size", "13px")
+            .style("font-size", "14px")
             .style("fill", "#374151");
 
         const line = d3
@@ -215,7 +215,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .call(d3.axisBottom(x).tickSizeOuter(0))
             .call((g) => g.select(".domain").attr("stroke", "#cbd5e1"))
             .selectAll("text")
-            .style("font-size", "13px")
+            .style("font-size", "14px")
             .style("fill", "#374151");
 
         const yFormat =
@@ -230,7 +230,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .call((g) => g.select(".domain").remove())
             .call((g) => g.selectAll("line").remove())
             .selectAll("text")
-            .style("font-size", "13px")
+            .style("font-size", "14px")
             .style("fill", "#374151");
 
         const line = d3
@@ -276,18 +276,52 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
                 }
             });
 
-        // Endpoint state labels
-        stateGroups
-            .append("text")
-            .datum((d) => ({ State: d.State, last: d.values[d.values.length - 1] }))
-            .attr("x", (d) => x(d.last.Year) + 6)
-            .attr("y", (d) => y(d.last.plotVal) + 4)
-            .style("font-size", "12px")
-            .style("font-weight", "700")
-            .style("fill", (d) => STATE_PALETTE[d.State] || "#374151")
+        const endpoints = stateSeries
+            .map(({ State, values }) => {
+                const last = values[values.length - 1];
+                return { State, x: x(last.Year), y: y(last.plotVal) };
+            })
+            .filter((d) => Number.isFinite(d.y))
+            .sort((a, b) => d3.ascending(a.y, b.y));
+
+        // Use the full SVG height for the label column, including the plot margins.
+        const top = 10 - margin.top;
+        const bottom = height - margin.top - 10;
+        const gap = Math.min(17, (bottom - top) / Math.max(1, endpoints.length - 1));
+        const labelX = innerWidth + 12;
+        let nextY = top;
+        endpoints.forEach((d, i) => {
+            const lastAvailableY = bottom - (endpoints.length - 1 - i) * gap;
+            d.labelY = Math.min(lastAvailableY, Math.max(nextY, d.y));
+            nextY = d.labelY + gap;
+        });
+
+        const labels = g.append("g")
+            .attr("aria-hidden", "true")
+            .selectAll("g")
+            .data(endpoints)
+            .join("g")
+            .attr("color", (d) => STATE_PALETTE[d.State] || "#374151")
             .attr("opacity", (d) =>
                 filterState.state === "All" || filterState.state === d.State ? 1 : 0.22
-            )
+            );
+
+        labels.append("line")
+            .attr("x1", (d) => d.x + 4)
+            .attr("y1", (d) => d.y)
+            .attr("x2", labelX - 4)
+            .attr("y2", (d) => d.labelY)
+            .attr("stroke", "currentColor")
+            .attr("stroke-width", 1);
+
+        labels.append("text")
+            .attr("class", "trend-end-label")
+            .attr("x", labelX)
+            .attr("y", (d) => d.labelY)
+            .attr("dy", "0.35em")
+            .style("font-size", `${Math.min(14, Math.floor(gap / 1.2))}px`)
+            .style("font-weight", "700")
+            .attr("fill", "currentColor")
             .text((d) => d.State);
 
         stateGroups
@@ -351,7 +385,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 18, right: 20, bottom: 28, left: 72 };
+    const margin = { top: 18, right: 20, bottom: 28, left: 78 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -408,7 +442,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
         .call(d3.axisBottom(x).tickSizeOuter(0))
         .call((g) => g.select(".domain").attr("stroke", "#cbd5e1"))
         .selectAll("text")
-        .style("font-size", "13px")
+        .style("font-size", "14px")
         .style("font-weight", "700")
         .style("fill", "#1f2937");
 
@@ -424,7 +458,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
         .call((g) => g.select(".domain").remove())
         .call((g) => g.selectAll("line").remove())
         .selectAll("text")
-        .style("font-size", "13px")
+        .style("font-size", "14px")
         .style("fill", "#374151");
 
     const tooltip = d3.select("#tooltip");
@@ -501,7 +535,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
         .attr("x", (d) => x(d.State) + x.bandwidth() / 2)
         .attr("y", (d) => y(d.plotVal) - 5)
         .attr("text-anchor", "middle")
-        .style("font-size", "12px")
+        .style("font-size", "14px")
         .style("font-weight", "700")
         .style("fill", "#1f2937")
         .attr("opacity", (d) =>
