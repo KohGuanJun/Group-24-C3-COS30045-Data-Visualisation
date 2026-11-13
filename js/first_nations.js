@@ -4,6 +4,8 @@ const fnSelection = {
     value: null     // clicked sub-category value
 };
 
+const fnTrendCategory = "Age";
+
 function initFirstNationsCharts() {
     if (!rawFnData.length) return;
 
@@ -41,11 +43,13 @@ function updateFnKeyFinding(data, yearVal) {
         return;
     }
 
-    const fnRows = data.filter(d => d["First Nations status"] === "First Nations people");
+    const fnRows = data.filter(d =>
+        d.Category === fnTrendCategory && d["First Nations status"] === "First Nations people"
+    );
     const fnTotal = d3.sum(fnRows, d => d["Sum(Hospitalisations)"] || 0);
 
     findingBar.innerHTML = `<strong>First Nations Insights (${periodText}):</strong> Recorded <strong>${d3.format(",")(fnTotal)}</strong> First Nations hospitalisations. ` +
-        `<em>Tip: Click any bar or slice to highlight and focus on a specific group.</em>`;
+        `<em>Tip: Click a bar, dot or slice to highlight and focus on a specific group.</em>`;
 }
 
 // 1. Annual Trend Line Chart
@@ -57,12 +61,12 @@ function renderFnTrendChart(data, yearVal) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 18, right: 30, bottom: 28, left: 58 };
+    const margin = { top: 24, right: 30, bottom: 28, left: 76 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
     // Use rawFnData so the trend line preserves full historical context across 2011–2021
-    let activeData = rawFnData.filter(d => d.Category === "Age");
+    let activeData = rawFnData.filter(d => d.Category === fnTrendCategory);
     if (fnSelection.value) {
         activeData = rawFnData.filter(d => d.Category === fnSelection.category && d.Sub_Category === fnSelection.value);
     }
@@ -108,8 +112,8 @@ function renderFnTrendChart(data, yearVal) {
         .call(d3.axisBottom(x).tickSizeOuter(0))
         .call(g => g.select(".domain").attr("stroke", "#cbd5e1"))
         .selectAll("text")
-        .style("font-size", "11px")
-        .style("fill", "#4b5563")
+        .style("font-size", "14px")
+        .style("fill", "#374151")
         .style("font-weight", d => String(d) === String(yearVal) ? "700" : "400");
 
     // Y-Axis
@@ -118,8 +122,8 @@ function renderFnTrendChart(data, yearVal) {
         .call(g => g.select(".domain").remove())
         .call(g => g.selectAll("line").remove())
         .selectAll("text")
-        .style("font-size", "11px")
-        .style("fill", "#4b5563");
+        .style("font-size", "14px")
+        .style("fill", "#374151");
 
     const colorScale = {
         "First Nations people": "#D55E00",
@@ -160,9 +164,9 @@ function renderFnTrendChart(data, yearVal) {
 
     const legend = svg.append("g").attr("transform", `translate(${margin.left + 10}, ${margin.top + 2})`);
     statuses.forEach((st, i) => {
-        const lg = legend.append("g").attr("transform", `translate(${i * 130}, 0)`);
+        const lg = legend.append("g").attr("transform", `translate(${i * 169}, 0)`);
         lg.append("rect").attr("width", 10).attr("height", 10).attr("fill", colorScale[st]).attr("rx", 2);
-        lg.append("text").attr("x", 14).attr("y", 9).style("font-size", "10.5px").style("fill", "#374151").text(st);
+        lg.append("text").attr("x", 14).attr("y", 9).style("font-size", "14px").style("fill", "#374151").text(st);
     });
 }
 
@@ -238,12 +242,14 @@ function renderFnRemotenessChart(data) {
             initFirstNationsCharts();
         });
 
-    g.append("text").attr("text-anchor", "middle").attr("dy", "-0.2em").style("font-size", "11px").style("fill", "#4b5563").text("Total");
-    g.append("text").attr("text-anchor", "middle").attr("dy", "1.1em").style("font-size", "14.5px").style("font-weight", "700").style("fill", "#111827").text(d3.format(",")(total));
+    g.append("text").attr("text-anchor", "middle").attr("dy", "-0.2em").style("font-size", "14px").style("fill", "#374151").text("Total");
+    g.append("text").attr("text-anchor", "middle").attr("dy", "1.1em").style("font-size", "18px").style("font-weight", "700").style("fill", "#111827").text(d3.format(",")(total));
 
     const rowSpacing = Math.min(22, (height - 20) / Math.max(summary.length, 1));
     const startY = (height - (summary.length - 1) * rowSpacing) / 2;
-    const legend = svg.append("g").attr("transform", `translate(${width * 0.54}, ${startY})`);
+    const legendWidth = 222;
+    const legendX = Math.min(width * 0.54, width - legendWidth - 8);
+    const legend = svg.append("g").attr("transform", `translate(${legendX}, ${startY})`);
 
     const rows = legend.selectAll(".legend-item")
         .data(summary)
@@ -264,8 +270,8 @@ function renderFnRemotenessChart(data) {
         });
 
     rows.append("rect").attr("width", 12).attr("height", 12).attr("rx", 2).attr("y", -10).attr("fill", d => color(d.key));
-    rows.append("text").attr("x", 18).attr("y", 0).style("font-size", "12px").style("font-weight", "700").style("fill", "#1f2937").text(d => d.key);
-    rows.append("text").attr("x", 185).attr("y", 0).attr("text-anchor", "end").style("font-size", "11.5px").style("font-weight", "600").style("fill", "#374151").text(d => `${d3.format(",")(d.val)} (${((d.val / total) * 100).toFixed(1)}%)`);
+    rows.append("text").attr("x", 18).attr("y", 0).style("font-size", "14px").style("font-weight", "700").style("fill", "#1f2937").text(d => d.key);
+    rows.append("text").attr("x", legendWidth).attr("y", 0).attr("text-anchor", "end").style("font-size", "14px").style("font-weight", "600").style("fill", "#374151").text(d => `${d3.format(",")(d.val)} (${((d.val / total) * 100).toFixed(1)}%)`);
 }
 
 // 3. Age Group Column Chart (with multi-year d3.sum aggregation & click-to-highlight)
@@ -277,30 +283,29 @@ function renderFnAgeChart(data) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 22, right: 20, bottom: 28, left: 58 };
+    const margin = { top: 33, right: 30, bottom: 31, left: 50 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    const ageData = data.filter(d => d.Category === "Age");
     const ageGroups = ["0-7", "8-16", "17-25", "26-39", "40-64", "65+"];
     const statuses = ["First Nations people", "Non-Indigenous"];
-
-    // Aggregates across all years in active view using d3.sum
-    const summary = ageGroups.map(grp => {
-        const fnVal = d3.sum(
-            ageData.filter(d => d.Sub_Category === grp && d["First Nations status"] === "First Nations people"),
-            d => d["Sum(Hospitalisations)"] || 0
-        );
-        const nonVal = d3.sum(
-            ageData.filter(d => d.Sub_Category === grp && d["First Nations status"] === "Non-Indigenous"),
-            d => d["Sum(Hospitalisations)"] || 0
-        );
-        return {
-            age: grp,
-            "First Nations people": fnVal,
-            "Non-Indigenous": nonVal
-        };
+    const counts = d3.rollup(
+        data.filter(d => d.Category === "Age"),
+        rows => d3.sum(rows, d => d["Sum(Hospitalisations)"] || 0),
+        d => d["First Nations status"],
+        d => d.Sub_Category
+    );
+    const points = statuses.flatMap(status => {
+        const byAge = counts.get(status);
+        const total = d3.sum(ageGroups, age => byAge?.get(age) || 0);
+        if (!total) return [];
+        return ageGroups.map(age => {
+            const count = byAge?.get(age) || 0;
+            return { status, age, count, share: count / total };
+        });
     });
+    const formatShare = d3.format(".1%");
+    const formatCount = d3.format(",");
 
     const svg = container.append("svg")
         .attr("role", "img")
@@ -309,60 +314,62 @@ function renderFnAgeChart(data) {
         .attr("width", "100%")
         .attr("height", "100%");
 
-    svg.append("title").attr("id", "fn-age-title").text("Injuries by Age Group Comparison");
-    svg.append("desc").attr("id", "fn-age-desc").text("Grouped column chart comparing hospitalisations across age brackets.");
+    svg.append("title").attr("id", "fn-age-title").text("Age Distribution of Hospitalisations");
+    svg.append("desc").attr("id", "fn-age-desc").text(
+        "Dot plot showing the share of known-age hospitalisations within each population group. " +
+        "Select a dot to highlight its age group."
+    );
 
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const x0 = d3.scaleBand().domain(ageGroups).range([0, innerWidth]).padding(0.2);
-    const x1 = d3.scaleBand().domain(statuses).range([0, x0.bandwidth()]).padding(0.05);
-
-    const maxVal = d3.max(summary, d => Math.max(d["First Nations people"], d["Non-Indigenous"])) || 1;
-    const y = d3.scaleLinear().domain([0, maxVal * 1.15]).nice().range([innerHeight, 0]);
+    const g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    const x = d3.scaleLinear()
+        .domain([0, (d3.max(points, d => d.share) || 0.1) * 1.10])
+        .nice(4)
+        .range([0, innerWidth]);
+    const y = d3.scaleBand().domain(ageGroups).range([0, innerHeight]).padding(0.15);
+    const centerY = (d) => y(d.age) + y.bandwidth() / 2;
+    const colorScale = { "First Nations people": "#D55E00", "Non-Indigenous": "#0072B2" };
 
     g.append("g")
-        .call(d3.axisLeft(y).ticks(5).tickSize(-innerWidth).tickFormat(""))
-        .call(g => g.select(".domain").remove())
-        .call(g => g.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"));
-
-    g.append("g")
-        .attr("transform", `translate(0,${innerHeight})`)
-        .call(d3.axisBottom(x0).tickSizeOuter(0))
-        .call(g => g.select(".domain").attr("stroke", "#cbd5e1"))
+        .attr("transform", "translate(0," + innerHeight + ")")
+        .call(d3.axisBottom(x).ticks(4).tickFormat(d3.format(".0%")).tickSize(-innerHeight))
+        .call(axis => axis.select(".domain").remove())
+        .call(axis => axis.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"))
         .selectAll("text")
-        .style("font-size", "10.5px")
+        .style("font-size", "14px")
+        .style("fill", "#374151");
+
+    g.append("g")
+        .call(d3.axisLeft(y).tickSize(0).tickPadding(8))
+        .call(axis => axis.select(".domain").remove())
+        .selectAll("text")
+        .style("font-size", "14px")
         .style("font-weight", "600")
         .style("fill", "#1f2937");
 
-    g.append("g")
-        .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format(",")))
-        .call(g => g.select(".domain").remove())
-        .call(g => g.selectAll("line").remove())
-        .selectAll("text")
-        .style("font-size", "11px")
-        .style("fill", "#4b5563");
-
-    const colorScale = {
-        "First Nations people": "#D55E00",
-        "Non-Indigenous": "#0072B2"
-    };
+    const legend = svg.append("g").attr("transform", "translate(" + margin.left + ",15)");
+    const legendItems = legend.selectAll("g").data(statuses).join("g")
+        .attr("transform", (_, i) => "translate(" + (i * 169) + ",0)");
+    legendItems.append("circle").attr("r", 4.5).attr("fill", status => colorScale[status]);
+    legendItems.append("text")
+        .attr("x", 10)
+        .attr("dy", "0.35em")
+        .style("font-size", "14px")
+        .style("fill", "#374151")
+        .text(status => status);
 
     const tooltip = d3.select("#tooltip");
     const isAgeSelected = fnSelection.category === "Age";
 
-    const ageGroupsEl = g.selectAll(".age-group")
-        .data(summary)
-        .join("g")
-        .attr("transform", d => `translate(${x0(d.age)},0)`);
-
-    ageGroupsEl.selectAll("rect")
-        .data(d => statuses.map(st => ({ status: st, val: d[st], age: d.age })))
-        .join("rect")
-        .attr("x", d => x1(d.status))
-        .attr("y", d => y(d.val))
-        .attr("width", x1.bandwidth())
-        .attr("height", d => innerHeight - y(d.val))
-        .attr("rx", 2)
+    g.selectAll(".fn-age-dot")
+        .data(points)
+        .join("circle")
+        .attr("class", "fn-age-dot")
+        .attr("cx", d => x(d.share))
+        .attr("cy", d => centerY(d) + (d.status === statuses[0] ? -5 : 5))
+        .attr("r", 4.5)
+        .attr("tabindex", 0)
+        .attr("role", "button")
+        .attr("aria-label", d => d.age + ", " + d.status + ": " + formatShare(d.share) + ", " + formatCount(d.count) + " hospitalisations. Select age group.")
         .attr("fill", d => colorScale[d.status])
         .attr("stroke", d => (isAgeSelected && fnSelection.value === d.age) ? "#111827" : "none")
         .attr("stroke-width", 2)
@@ -370,12 +377,18 @@ function renderFnAgeChart(data) {
         .style("cursor", "pointer")
         .on("mouseenter", (event, d) => {
             tooltip.classed("hidden", false)
-                .html(`<strong>Age ${d.age} — ${d.status}</strong><br/>Hospitalisations: <strong>${d3.format(",")(d.val)}</strong>`);
+                .html(`<strong>Age ${d.age} — ${d.status}</strong><br/>Share within population group: <strong>${formatShare(d.share)}</strong><br/>Hospitalisations: <strong>${formatCount(d.count)}</strong>`);
         })
         .on("mousemove", (event) => {
             tooltip.style("left", `${event.pageX + 12}px`).style("top", `${event.pageY - 28}px`);
         })
         .on("mouseleave", () => tooltip.classed("hidden", true))
+        .on("keydown", function(event) {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                this.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+            }
+        })
         .on("click", (event, d) => {
             if (fnSelection.category === "Age" && fnSelection.value === d.age) {
                 fnSelection.category = null;
@@ -397,10 +410,14 @@ function renderFnRoadUserChart(data) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 18, right: 30, bottom: 28, left: 230 }; // Wide margin for labels
+    const margin = { top: 15, right: 30, bottom: 26, left: 254 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
+    const roadUserLabels = {
+        "Car driver, passenger or unknown position": "Car occupant / unknown position",
+        "Heavy transport driver, passenger or unknown position": "Heavy transport / unknown position",
+    };
     const ruData = data.filter(d => d.Category === "Road User");
     const roadUsers = Array.from(new Set(ruData.map(d => d.Sub_Category)));
 
@@ -432,10 +449,10 @@ function renderFnRoadUserChart(data) {
     const x = d3.scaleLinear().domain([0, (d3.max(summary, d => d.val) || 1) * 1.15]).nice().range([0, innerWidth]);
 
     g.append("g")
-        .call(d3.axisLeft(y).tickSize(0))
+        .call(d3.axisLeft(y).tickSize(0).tickFormat(label => roadUserLabels[label] ?? label))
         .call(g => g.select(".domain").remove())
         .selectAll("text")
-        .style("font-size", "10px")
+        .style("font-size", "14px")
         .style("font-weight", "600")
         .style("fill", "#1f2937");
 
@@ -445,8 +462,8 @@ function renderFnRoadUserChart(data) {
         .call(g => g.select(".domain").remove())
         .call(g => g.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"))
         .selectAll("text")
-        .style("font-size", "10px")
-        .style("fill", "#4b5563");
+        .style("font-size", "14px")
+        .style("fill", "#374151");
 
     const tooltip = d3.select("#tooltip");
     const isRuSelected = fnSelection.category === "Road User";

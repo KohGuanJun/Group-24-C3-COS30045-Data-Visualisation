@@ -10,14 +10,10 @@
 <body>
     <!-- Header -->
     <header class="page-header">
-        <div class="container header-flex">
-            <div>
-                <h1>Hospitalised Injuries from Road Crashes</h1>
-                <p class="subtitle">Australian Road Traffic Hospitalisations (2011–2021)</p>
-            </div>
-            <div class="header-year">
-                <span id="active-year-label">2011–2021</span>
-            </div>
+        <div class="header-content">
+            <p class="header-course">COS30045 / GROUP 24 (C3)</p>
+            <h1>Hospitalised Injuries from<br>Road Crashes</h1>
+            <p class="header-period">Australia &middot; <span id="active-year-label">2011&ndash;2021</span></p>
         </div>
     </header>
 
@@ -33,7 +29,7 @@
         </div>
     </nav>
 
-    <!-- Global Filter Bar (Clean: Only Year, State, Metric, Reset) -->
+    <!-- Dashboard filters -->
     <section class="filter-bar">
         <div class="container filter-grid">
             <div class="filter-field">
@@ -86,7 +82,7 @@
                 </select>
             </div>
 
-            <div class="filter-field">
+            <div class="filter-field" id="field-metric">
                 <label for="filter-metric">Metric</label>
                 <select id="filter-metric">
                     <option value="Hospitalised_Injuries" selected>Hospitalised Injuries</option>
@@ -94,6 +90,8 @@
                     <option value="Average_Bed_Days">Average Bed Days</option>
                 </select>
             </div>
+
+            <span id="first-nations-filter-scope" hidden>All Australia · Hospitalisations</span>
 
             <div class="filter-action">
                 <button id="btn-reset-filters" type="button">Reset</button>
@@ -184,7 +182,7 @@
                 <div class="chart-box">
                     <div class="chart-header">
                         <h2 id="title-chart-4">State Share of Hospitalised Injuries (2011–2021)</h2>
-                        <span class="chart-hint">Click any slice to select state</span>
+                        <span class="chart-hint">Click to filter</span>
                     </div>
                     <div id="chart-4" class="chart-area"></div>
                 </div>
@@ -194,7 +192,7 @@
         <!-- View 2: Teammates' Section (Demographics, Remoteness & Road Users) -->
         <div id="view-demographics" class="view-section">
             <div class="chart-grid">
-                <!-- 1: Road User -->
+                <!-- 1: Road User Lollipop Chart -->
                 <div class="chart-box">
                     <div class="chart-header">
                         <h2 id="title-demo-1">Injuries by Road User (2011–2021)</h2>
@@ -221,11 +219,11 @@
                     <div id="chart-age" class="chart-area"></div>
                 </div>
 
-                <!-- 4: Sex -->
+                <!-- 4: Sex Dot Plot -->
                 <div class="chart-box">
                     <div class="chart-header">
                         <h2 id="title-demo-4">Injuries by Sex (2011–2021)</h2>
-                        <span class="chart-hint">Male vs Female comparison</span>
+                        <span class="chart-hint">Comparison by recorded sex</span>
                     </div>
                     <div id="chart-sex" class="chart-area"></div>
                 </div>
@@ -247,7 +245,7 @@
                     <div id="fn-chart-trend" class="chart-area"></div>
                 </div>
 
-                <!-- 2: Remoteness Grouped Bar Chart -->
+                <!-- 2: Remoteness Donut Chart -->
                 <div class="chart-box">
                     <div class="chart-header">
                         <h2 id="title-fn-2">First Nations Share by Remoteness Area</h2>
@@ -256,11 +254,11 @@
                     <div id="fn-chart-remoteness" class="chart-area"></div>
                 </div>
 
-                <!-- 3: Age Group Column Chart -->
+                <!-- 3: Age Group Dot Plot -->
                 <div class="chart-box">
                     <div class="chart-header">
-                        <h2 id="title-fn-3">Injuries by Age Group</h2>
-                        <span class="chart-hint">Distribution across age brackets</span>
+                        <h2 id="title-fn-3">Age Distribution of Hospitalisations</h2>
+                        <span class="chart-hint">Share within each population group</span>
                     </div>
                     <div id="fn-chart-age" class="chart-area"></div>
                 </div>

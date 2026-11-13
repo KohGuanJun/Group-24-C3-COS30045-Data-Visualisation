@@ -114,16 +114,16 @@ function updateDemographicsCharts() {
         return matchYear && matchRoadUser;
     });
 
-    renderHorizontalBar("#chart-road-user", filtered, "Road user", metricVal, "#0072B2");
+    renderRoadUserLollipop("#chart-road-user", filtered, "Road user", metricVal, "#0072B2");
     renderRemotenessDonut("#chart-remoteness", filtered, metricVal);
-    renderVerticalBar("#chart-age", filtered, "Age group", metricVal, "#009E73");
-    renderVerticalBar("#chart-sex", filtered, "Sex", metricVal, "#D55E00");
+    renderDemographicComparison("#chart-age", filtered, "Age group", metricVal, "#009E73");
+    renderDemographicComparison("#chart-sex", filtered, "Sex", metricVal, "#D55E00");
 
     updateDemoKeyFinding(filtered, metricVal);
 }
 
-// Chart 1: Horizontal Bar Chart (Road User breakdown)
-function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
+// Chart 1: Road user lollipop chart
+function renderRoadUserLollipop(selector, data, groupCol, metric, barColor) {
     const container = d3.select(selector);
     if (container.empty()) return;
     container.selectAll("*").remove();
@@ -131,7 +131,7 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
     const node = container.node();
     const width = node.clientWidth || 560;
     const height = node.clientHeight || 290;
-    const margin = { top: 16, right: 65, bottom: 28, left: 190 };
+    const margin = { top: 16, right: 65, bottom: 28, left: 218 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -141,8 +141,8 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
         return { key, val: getDemoMetricValue(rows, metric) };
     }).sort((a, b) => d3.descending(a.val, b.val));
 
-    const svgTitleId = `demo-hbar-title-${groupCol.replace(/\s+/g,"-")}`;
-    const svgDescId  = `demo-hbar-desc-${groupCol.replace(/\s+/g,"-")}`;
+    const svgTitleId = `demo-road-user-title-${groupCol.replace(/\s+/g,"-")}`;
+    const svgDescId  = `demo-road-user-desc-${groupCol.replace(/\s+/g,"-")}`;
 
     const svg = container.append("svg")
         .attr("role", "img")
@@ -154,7 +154,7 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
     svg.append("title").attr("id", svgTitleId)
         .text(`Hospitalised Injuries by ${groupCol}`);
     svg.append("desc").attr("id", svgDescId)
-        .text(`Horizontal bar chart showing hospitalised road crash injuries broken down by ${groupCol}. Click a bar to cross-filter the other charts.`);
+        .text(`Lollipop chart showing the selected metric by ${groupCol}. Select a mark to cross-filter the other charts.`);
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -175,15 +175,15 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
         .call((g) => g.select(".domain").remove())
         .call((g) => g.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"))
         .selectAll("text")
-        .style("font-size", "11px")
-        .style("fill", "#6b7280");
+        .style("font-size", "13px")
+        .style("fill", "#374151");
 
     // Y Axis category labels
     g.append("g")
         .call(d3.axisLeft(y).tickSize(0))
         .call((g) => g.select(".domain").remove())
         .selectAll("text")
-        .style("font-size", "10.5px")
+        .style("font-size", "12px")
         .style("font-weight", "600")
         .style("fill", "#374151")
         .each(function(d) {
@@ -193,15 +193,25 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
     const tooltip = d3.select("#tooltip");
     const fmt = metric === "Average_Bed_Days" ? d3.format(".2f") : d3.format(",.0f");
 
-    // Draw bars initially at width 0, then transition in (W10 animation)
-    g.selectAll("rect")
+    const centerY = (d) => y(d.key) + y.bandwidth() / 2;
+    g.selectAll(".demo-stem")
         .data(summary)
-        .join("rect")
-        .attr("y", (d) => y(d.key))
-        .attr("x", 0)
-        .attr("height", y.bandwidth())
-        .attr("width", 0)
-        .attr("rx", 3)
+        .join("line")
+        .attr("class", "demo-stem")
+        .attr("x1", 0)
+        .attr("x2", (d) => x(d.val))
+        .attr("y1", centerY)
+        .attr("y2", centerY)
+        .attr("stroke", barColor)
+        .attr("stroke-width", 2);
+
+    g.selectAll(".demo-mark")
+        .data(summary)
+        .join("circle")
+        .attr("class", "demo-mark")
+        .attr("cx", (d) => x(d.val))
+        .attr("cy", centerY)
+        .attr("r", 5)
         .attr("fill", barColor)
         .attr("tabindex", 0)
         .attr("role", "button")
@@ -220,17 +230,15 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
                 event.preventDefault();
                 this.dispatchEvent(new MouseEvent("click", { bubbles: true }));
             }
-        })
-        .transition().duration(400).ease(d3.easeCubicOut)
-        .attr("width", (d) => x(d.val));
+        });
 
     g.selectAll(".val-label")
         .data(summary)
         .join("text")
         .attr("class", "val-label")
-        .attr("x", (d) => x(d.val) + 6)
-        .attr("y", (d) => y(d.key) + y.bandwidth() / 2 + 4)
-        .style("font-size", "10.5px")
+        .attr("x", (d) => x(d.val) + 9)
+        .attr("y", (d) => centerY(d) + 4)
+        .style("font-size", "12px")
         .style("font-weight", "600")
         .style("fill", "#374151")
         .style("opacity", 0)
@@ -239,8 +247,8 @@ function renderHorizontalBar(selector, data, groupCol, metric, barColor) {
         .style("opacity", 1);
 }
 
-// Charts 3 & 4: Vertical Bar Charts (Age Group and Sex breakdowns)
-function renderVerticalBar(selector, data, groupCol, metric, barColor) {
+// Charts 3 and 4: Age bars and sex dot plot
+function renderDemographicComparison(selector, data, groupCol, metric, barColor) {
     const container = d3.select(selector);
     if (container.empty()) return;
     container.selectAll("*").remove();
@@ -248,7 +256,7 @@ function renderVerticalBar(selector, data, groupCol, metric, barColor) {
     const node = container.node();
     const width = node.clientWidth || 560;
     const height = node.clientHeight || 290;
-    const margin = { top: 22, right: 20, bottom: 38, left: 60 };
+    const margin = { top: 22, right: 20, bottom: 38, left: 72 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -258,8 +266,9 @@ function renderVerticalBar(selector, data, groupCol, metric, barColor) {
         return { key, val: getDemoMetricValue(rows, metric) };
     });
 
-    const svgTitleId = `demo-vbar-title-${groupCol.replace(/\s+/g,"-")}`;
-    const svgDescId  = `demo-vbar-desc-${groupCol.replace(/\s+/g,"-")}`;
+    const showBars = groupCol === "Age group";
+    const svgTitleId = `demo-comparison-title-${groupCol.replace(/\s+/g,"-")}`;
+    const svgDescId  = `demo-comparison-desc-${groupCol.replace(/\s+/g,"-")}`;
 
     const svg = container.append("svg")
         .attr("role", "img")
@@ -271,7 +280,7 @@ function renderVerticalBar(selector, data, groupCol, metric, barColor) {
     svg.append("title").attr("id", svgTitleId)
         .text(`Hospitalised Injuries by ${groupCol}`);
     svg.append("desc").attr("id", svgDescId)
-        .text(`Vertical bar chart showing hospitalised road crash injuries broken down by ${groupCol}. Click a bar to cross-filter the other charts.`);
+        .text(`${showBars ? "Bar chart" : "Dot plot"} showing the selected metric by ${groupCol}. Select a mark to cross-filter the other charts.`);
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -296,10 +305,12 @@ function renderVerticalBar(selector, data, groupCol, metric, barColor) {
     // X Axis
     g.append("g")
         .attr("transform", `translate(0,${innerHeight})`)
-        .call(d3.axisBottom(x).tickSizeOuter(0))
+        .call(d3.axisBottom(x).tickSizeOuter(0).tickFormat((key) =>
+            key === "intersex or indeterminate or missing" ? "Intersex / indet. / missing" : key
+        ))
         .call((g) => g.select(".domain").attr("stroke", "#cbd5e1"))
         .selectAll("text")
-        .style("font-size", "11.5px")
+        .style("font-size", "13px")
         .style("font-weight", "600")
         .style("fill", "#374151");
 
@@ -309,20 +320,16 @@ function renderVerticalBar(selector, data, groupCol, metric, barColor) {
         .call((g) => g.select(".domain").remove())
         .call((g) => g.selectAll("line").remove())
         .selectAll("text")
-        .style("font-size", "11px")
-        .style("fill", "#6b7280");
+        .style("font-size", "13px")
+        .style("fill", "#374151");
 
     const tooltip = d3.select("#tooltip");
 
-    // Draw bars from baseline up with transition (W10 animation)
-    g.selectAll("rect")
+    const centerX = (d) => x(d.key) + x.bandwidth() / 2;
+    const marks = g.selectAll(".demo-mark")
         .data(summary)
-        .join("rect")
-        .attr("x", (d) => x(d.key))
-        .attr("y", innerHeight)
-        .attr("width", x.bandwidth())
-        .attr("height", 0)
-        .attr("rx", 3)
+        .join(showBars ? "rect" : "circle")
+        .attr("class", "demo-mark")
         .attr("fill", barColor)
         .attr("tabindex", 0)
         .attr("role", "button")
@@ -341,22 +348,34 @@ function renderVerticalBar(selector, data, groupCol, metric, barColor) {
                 event.preventDefault();
                 this.dispatchEvent(new MouseEvent("click", { bubbles: true }));
             }
-        })
-        .transition().duration(400).ease(d3.easeCubicOut)
-        .attr("y", (d) => y(d.val))
-        .attr("height", (d) => innerHeight - y(d.val));
+        });
 
-    // Value labels on top of bars (appear after bars animate in)
+    if (showBars) {
+        marks.attr("x", (d) => x(d.key))
+            .attr("y", innerHeight)
+            .attr("width", x.bandwidth())
+            .attr("height", 0)
+            .attr("rx", 3)
+            .transition().duration(400).ease(d3.easeCubicOut)
+            .attr("y", (d) => y(d.val))
+            .attr("height", (d) => innerHeight - y(d.val));
+    } else {
+        marks.attr("cx", centerX)
+            .attr("cy", (d) => y(d.val))
+            .attr("r", 6);
+    }
+
+    // Direct values above the marks
     g.selectAll(".bar-top-label")
         .data(summary)
         .join("text")
         .attr("class", "bar-top-label")
         .attr("x", (d) => x(d.key) + x.bandwidth() / 2)
-        .attr("y", (d) => y(d.val) - 5)
+        .attr("y", (d) => y(d.val) - 10)
         .attr("text-anchor", "middle")
-        .style("font-size", "10.5px")
+        .style("font-size", "12px")
         .style("font-weight", "600")
-        .style("fill", "#4b5563")
+        .style("fill", "#374151")
         .style("opacity", 0)
         .text((d) => fmt(d.val))
         .transition().delay(350).duration(200)
@@ -442,14 +461,14 @@ function renderRemotenessDonut(selector, data, metric) {
     g.append("text")
         .attr("text-anchor", "middle")
         .attr("dy", "-0.2em")
-        .style("font-size", "11px")
-        .style("fill", "#6b7280")
+        .style("font-size", "13px")
+        .style("fill", "#374151")
         .text("Total");
 
     g.append("text")
         .attr("text-anchor", "middle")
         .attr("dy", "1.1em")
-        .style("font-size", "14px")
+        .style("font-size", "16px")
         .style("font-weight", "700")
         .style("fill", "#1f2937")
         .text(d3.format(",")(total));
@@ -483,7 +502,7 @@ function renderRemotenessDonut(selector, data, metric) {
     rows.append("text")
         .attr("x", 18)
         .attr("y", 0)
-        .style("font-size", "12px")
+        .style("font-size", "13px")
         .style("font-weight", "600")
         .style("fill", "#374151")
         .text((d) => d.key);
@@ -492,8 +511,8 @@ function renderRemotenessDonut(selector, data, metric) {
         .attr("x", 210)
         .attr("y", 0)
         .attr("text-anchor", "end")
-        .style("font-size", "11.5px")
-        .style("fill", "#4b5563")
+        .style("font-size", "13px")
+        .style("fill", "#374151")
         .text((d) => {
             const pct = ((d.val / total) * 100).toFixed(1);
             return `${pct}%`;

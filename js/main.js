@@ -185,19 +185,16 @@ function updateDashboard() {
 document.addEventListener("DOMContentLoaded", () => {
     // Tab switching
     function updateFilterBarVisibility(activeTab) {
-        const stateField = document.getElementById("field-state");
-        const roadUserField = document.getElementById("field-road-user");
-        if (!stateField || !roadUserField) return;
-
-        if (activeTab === "demographics") {
-            stateField.style.display = "none";
-            roadUserField.style.display = "flex";
-        } else {
-            // Overview (State & National Trends) and other views
-            stateField.style.display = "flex";
-            roadUserField.style.display = "none";
-        }
+        const isFirstNations = activeTab === "first-nations";
+        const isDemographics = activeTab === "demographics";
+        document.getElementById("field-state").style.display =
+            isFirstNations || isDemographics ? "none" : "flex";
+        document.getElementById("field-road-user").style.display = isDemographics ? "flex" : "none";
+        document.getElementById("field-metric").style.display = isFirstNations ? "none" : "flex";
+        document.getElementById("first-nations-filter-scope").hidden = !isFirstNations;
     }
+
+    updateFilterBarVisibility(document.querySelector(".tab-btn.active")?.dataset.view ?? "overview");
 
     document.querySelectorAll(".tab-btn").forEach((tab) => {
         tab.addEventListener("click", () => {

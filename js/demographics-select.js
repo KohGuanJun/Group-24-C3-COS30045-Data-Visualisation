@@ -1,6 +1,6 @@
 (function () {
-    if (typeof window.renderHorizontalBar !== "function" ||
-        typeof window.renderVerticalBar !== "function" ||
+    if (typeof window.renderRoadUserLollipop !== "function" ||
+        typeof window.renderDemographicComparison !== "function" ||
         typeof window.renderRemotenessDonut !== "function") {
         console.warn("demographics-select.js: load it after demographics.js");
         return;
@@ -23,7 +23,7 @@
         if (sel[col] !== null && !rowsFor(data, col).some((d) => d[col] === sel[col])) sel[col] = null;
     }
  
-    // Toggle selection on/off when a bar or slice is clicked
+    // Toggle selection on/off when a chart mark is clicked
     function toggle(col, key) {
         sel[col] = sel[col] === key ? null : key;
         if (col === "Road user") {
@@ -56,7 +56,7 @@
         }
         const active = Object.keys(sel).filter((c) => sel[c] !== null);
         if (!active.length) {
-            bar.innerHTML = "<strong>Tip:</strong> Click any bar or slice to focus on one group — the other charts update to match.";
+            bar.innerHTML = "<strong>Tip:</strong> Click a bar, dot or slice to focus on one group — the other charts update to match.";
         } else {
             bar.innerHTML = active.map((c) => `${LABELS[c]}: <strong>${sel[c]}</strong>`).join(" &nbsp;·&nbsp; ") +
                 ' &nbsp; <button type="button" class="mini-btn" id="btn-clear-demo-sel">Clear selection</button>';
@@ -64,20 +64,20 @@
         }
     }
  
-    // Add click events and highlight/dim styles to bar charts
-    function decorateBars(selector, col) {
+    // Add click events and highlight/dim styles to category charts
+    function decorateMarks(selector, col) {
         const selected = sel[col];
         const root = d3.select(selector);
-        const rects = root.selectAll("rect");
-        const keys = new Set(rects.data().map((d) => d.key));
+        const marks = root.selectAll(".demo-mark");
+        const keys = new Set(marks.data().map((d) => d.key));
  
-        rects
+        marks
             .attr("opacity", (d) => (isOn(selected, d.key) ? 1 : 0.25))
             .attr("stroke", (d) => (d.key === selected ? "#111827" : "none"))
             .attr("stroke-width", 2)
             .on("click", (event, d) => toggle(col, d.key));
  
-        root.selectAll(".val-label, .bar-top-label")
+        root.selectAll(".demo-stem, .val-label, .bar-top-label")
             .attr("opacity", (d) => (isOn(selected, d.key) ? 1 : 0.35));
  
         // category labels on the axis are clickable too
@@ -108,21 +108,21 @@
     }
  
     // Wrap original chart render functions to attach cross-filtering
-    const origH = window.renderHorizontalBar;
-    const origV = window.renderVerticalBar;
+    const origH = window.renderRoadUserLollipop;
+    const origV = window.renderDemographicComparison;
     const origD = window.renderRemotenessDonut;
  
-    window.renderHorizontalBar = function (selector, data, groupCol, metric, color) {
+    window.renderRoadUserLollipop = function (selector, data, groupCol, metric, color) {
         sanitise(data, groupCol);
         origH(selector, rowsFor(data, groupCol), groupCol, metric, color);
-        decorateBars(selector, groupCol);
+        decorateMarks(selector, groupCol);
         updateBar();
     };
  
-    window.renderVerticalBar = function (selector, data, groupCol, metric, color) {
+    window.renderDemographicComparison = function (selector, data, groupCol, metric, color) {
         sanitise(data, groupCol);
         origV(selector, rowsFor(data, groupCol), groupCol, metric, color);
-        decorateBars(selector, groupCol);
+        decorateMarks(selector, groupCol);
         updateBar();
     };
  

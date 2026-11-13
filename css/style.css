@@ -6,64 +6,99 @@
 
 html,
 body {
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden; /* Lock viewport: no vertical or horizontal scrolling */
     font-family: Arial, Helvetica, sans-serif;
     background-color: #f4f6f8;
     color: #222222;
     line-height: 1.35;
 }
 
+html {
+    display: grid;
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+    place-items: center;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background-color: #e8edf2;
+}
+
 body {
+    --available-width: min(80vw, calc(100vw - 16px));
+    --dashboard-height: clamp(740px, var(--available-height), 820px);
+    --available-height: calc(100vh - 24px);
+    /* tan(atan2()) expresses a ratio of two lengths as a unitless scale. */
+    --dashboard-scale: min(
+        1,
+        tan(atan2(var(--available-width), 1240px)),
+        tan(atan2(var(--available-height), var(--dashboard-height)))
+    );
+    /* Keep the side margins when zoom shrinks the dashboard for a short viewport. */
+    width: calc(var(--available-width) / var(--dashboard-scale));
+    height: var(--dashboard-height);
+    zoom: var(--dashboard-scale);
     display: flex;
     flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px #dce3ea;
 }
 
 .container {
-    max-width: 1400px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 0 18px;
+    width: calc(100% - 24px);
+    margin-inline: auto;
 }
 
-/* Header + Tabs combined compactly */
+/* Dashboard header */
 .page-header {
-    background-color: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 8px 0;
+    height: 124px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+    background:
+        linear-gradient(90deg, #111f2e 38%, rgba(17, 31, 46, 0.97) 46%, rgba(17, 31, 46, 0.15) 72%, transparent 100%),
+        url("../assets/images/road-header.webp") right 53% / 68% auto no-repeat,
+        #111f2e;
+    color: #ffffff;
 }
 
-.header-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
+.header-content {
+    padding-inline: 26px;
+}
+
+.header-course {
+    color: #c8e7ed;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.header-course::after {
+    content: "";
+    display: block;
+    width: 52px;
+    height: 2px;
+    margin-block: 5px 6px;
+    background: #efbb61;
 }
 
 .page-header h1 {
-    font-size: 18px;
+    font-size: 35px;
     font-weight: 700;
-    color: #1f2937;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
 }
 
-.page-header .subtitle {
-    font-size: 12px;
-    color: #6b7280;
-}
-
-.header-year {
-    font-size: 16px;
+.header-period {
+    margin-top: 6px;
+    color: #c8e7ed;
+    font-size: 14px;
     font-weight: 700;
-    color: #2563eb;
-    white-space: nowrap;
 }
 
 /* Navigation Tabs */
 .nav-bar {
-    background-color: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
+    background-color: #faf5eb;
+    border-bottom: 1px solid #e1d4c0;
     flex-shrink: 0;
 }
 
@@ -76,29 +111,29 @@ body {
 .tab-btn {
     padding: 5px 14px;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
-    color: #4b5563;
-    background-color: #f3f4f6;
-    border: 1px solid #d1d5db;
+    color: #48391f;
+    background-color: #fffdfa;
+    border: 1px solid #dbccb5;
     border-radius: 4px;
     cursor: pointer;
 }
 
 .tab-btn:hover {
-    background-color: #e5e7eb;
+    background-color: #f2e7d1;
 }
 
 .tab-btn.active {
-    background-color: #2563eb;
-    color: #ffffff;
-    border-color: #2563eb;
+    background-color: #efbb61;
+    color: #2e2312;
+    border-color: #efbb61;
 }
 
 /* Filter Bar */
 .filter-bar {
-    background-color: #e9eef4;
-    border-bottom: 1px solid #d1d9e2;
+    background-color: #ede0cb;
+    border-bottom: 1px solid #d9c8ae;
     padding: 6px 0;
     flex-shrink: 0;
 }
@@ -115,59 +150,66 @@ body {
     align-items: center;
     gap: 6px;
     flex: 1;
+    min-width: 0;
+}
+
+#first-nations-filter-scope {
+    color: #34291d;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .filter-field label {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
-    color: #374151;
+    color: #34291d;
     white-space: nowrap;
 }
 
 .filter-field select {
     font-family: inherit;
-    font-size: 12.5px;
+    font-size: 14px;
     padding: 4px 8px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #ad9a7d;
     border-radius: 4px;
     background-color: #ffffff;
     color: #1f2937;
     width: 100%;
+    min-width: 0;
 }
 
 .filter-action button {
     font-family: inherit;
-    font-size: 12.5px;
+    font-size: 14px;
     font-weight: 600;
     padding: 5px 14px;
     background-color: #ffffff;
-    color: #374151;
-    border: 1px solid #cbd5e1;
+    color: #34291d;
+    border: 1px solid #ad9a7d;
     border-radius: 4px;
     cursor: pointer;
 }
 
 .filter-action button:hover {
-    background-color: #f3f4f6;
+    background-color: #faf5eb;
 }
 
-/* Main Content: fills remaining viewport height */
 .main-content {
     flex: 1;
     min-height: 0;
-    padding-top: 8px;
-    padding-bottom: 8px;
     display: flex;
     flex-direction: column;
+    padding-block: 8px 12px;
 }
 
 .view-section {
     display: none;
-    flex: 1;
-    min-height: 0;
 }
 
 .view-section.active {
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -182,30 +224,31 @@ body {
 }
 
 .summary-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: #fffcf6;
+    border: 1px solid #dfd1bd;
     border-radius: 6px;
     padding: 8px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
 }
 
 .summary-title {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
-    color: #374151;
+    color: #14283d;
 }
 
 .summary-sub {
-    font-size: 11px;
-    color: #6b7280;
+    font-size: 13px;
+    color: #475569;
 }
 
 .summary-value {
-    font-size: 20px;
+    font-size: 26px;
     font-weight: 700;
-    color: #1f2937;
+    color: #14283d;
 }
 
 .yoy-up {
@@ -220,23 +263,23 @@ body {
 
 /* Key Finding Strip (Audience Takeaway) */
 .finding-bar {
-    background-color: #f0f7ff;
-    border: 1px solid #bfdbfe;
-    border-left: 4px solid #0072B2;
+    background-color: #fff4da;
+    border: 1px solid #ebd19e;
+    border-left: 4px solid #a36115;
     border-radius: 5px;
     padding: 5px 12px;
-    font-size: 12px;
+    font-size: 15px;
     color: #1e293b;
     flex-shrink: 0;
 }
 
-/* 2x2 Chart Grid: stretches to fill remaining height without scrolling */
+/* Two rows share the space left by the header, filters and summary. */
 .chart-grid {
     flex: 1;
-    min-height: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    min-height: 0;
     gap: 10px;
 }
 
@@ -247,6 +290,7 @@ body {
     padding: 8px 12px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
     min-height: 0;
     overflow: hidden;
 }
@@ -261,22 +305,23 @@ body {
 .chart-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
+    flex-wrap: wrap;
     margin-bottom: 4px;
-    gap: 8px;
+    gap: 4px 8px;
     flex-shrink: 0;
 }
 
 .chart-box h2,
 .text-box h2 {
-    font-size: 13.5px;
+    font-size: 18px;
     font-weight: 700;
-    color: #1f2937;
+    color: #14263a;
 }
 
 .chart-hint {
-    font-size: 11px;
-    color: #6b7280;
+    font-size: 13px;
+    color: #475569;
 }
 
 .chart-controls {
@@ -287,7 +332,7 @@ body {
 
 .chart-select {
     font-family: inherit;
-    font-size: 11.5px;
+    font-size: 13px;
     font-weight: 600;
     padding: 2px 6px;
     border: 1px solid #cbd5e1;
@@ -304,7 +349,7 @@ body {
 
 .mini-btn {
     font-family: inherit;
-    font-size: 11.5px;
+    font-size: 13px;
     font-weight: 600;
     padding: 2px 7px;
     border: 1px solid #cbd5e1;
@@ -328,21 +373,56 @@ body {
     position: relative;
 }
 
+.chart-area > svg {
+    position: absolute;
+    inset: 0;
+    display: block;
+}
+
 .text-box p {
     font-size: 14px;
     color: #4b5563;
     margin-bottom: 10px;
 }
 
+@supports (height: 100dvh) {
+    body {
+        --available-height: calc(100dvh - 24px);
+    }
+}
+
+#view-glossary .text-box {
+    padding-block: 12px;
+    column-count: 2;
+    column-gap: 28px;
+}
+
+#view-glossary h2 {
+    column-span: all;
+}
+
+#view-glossary .text-box h3 {
+    margin-block: 8px 4px !important;
+    break-after: avoid-column;
+}
+
+#view-glossary p {
+    break-inside: avoid-column;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
 /* Tooltip */
 .d3-tooltip {
-    position: absolute;
+    position: fixed;
+    /* D3 supplies viewport coordinates in CSS pixels. */
+    zoom: calc(1 / var(--dashboard-scale));
     pointer-events: none;
     background-color: rgba(31, 41, 55, 0.95);
     color: #ffffff;
     padding: 6px 10px;
     border-radius: 4px;
-    font-size: 11.5px;
+    font-size: 14px;
     line-height: 1.35;
     z-index: 1000;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
@@ -361,10 +441,29 @@ body {
 /* Footer */
 .page-footer {
     border-top: 1px solid #e5e7eb;
+    border-radius: 0 0 8px 8px;
     background-color: #ffffff;
     padding: 4px 0;
     text-align: center;
-    font-size: 11.5px;
+    font-size: 12.5px;
     color: #6b7280;
     flex-shrink: 0;
+}
+
+@media (max-height: 760px) {
+    .page-header {
+        height: 98px;
+    }
+
+    .main-content {
+        padding-block: 6px 8px;
+    }
+
+    .summary-card {
+        padding-block: 5px;
+    }
+
+    .chart-header {
+        margin-bottom: 2px;
+    }
 }

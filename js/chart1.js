@@ -5,7 +5,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 18, right: 48, bottom: 30, left: 58 };
+    const margin = { top: 18, right: 48, bottom: 30, left: 72 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -72,7 +72,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
 
         // Gridlines
         g.append("g")
-            .call(d3.axisLeft(y).ticks(5).tickSize(-innerWidth).tickFormat(""))
+            .call(d3.axisLeft(y).ticks(4).tickSize(-innerWidth).tickFormat(""))
             .call((g) => g.select(".domain").remove())
             .call((g) => g.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"));
 
@@ -82,19 +82,19 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .call(d3.axisBottom(x).tickSizeOuter(0))
             .call((g) => g.select(".domain").attr("stroke", "#cbd5e1"))
             .selectAll("text")
-            .style("font-size", "11px")
+            .style("font-size", "13px")
             .style("font-weight", (d) => (String(d) === String(filterState.year) ? "700" : "500"))
             .style("fill", (d) => (String(d) === String(filterState.year) ? "#111827" : "#4b5563"));
 
         // Y Axis
         const yFormat = metric === "Average_Bed_Days" ? d3.format(".1f") : d3.format(",");
         g.append("g")
-            .call(d3.axisLeft(y).ticks(5).tickFormat(yFormat))
+            .call(d3.axisLeft(y).ticks(4).tickFormat(yFormat))
             .call((g) => g.select(".domain").remove())
             .call((g) => g.selectAll("line").remove())
             .selectAll("text")
-            .style("font-size", "11px")
-            .style("fill", "#4b5563");
+            .style("font-size", "13px")
+            .style("fill", "#374151");
 
         const line = d3
             .line()
@@ -196,7 +196,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .range([innerHeight, 0]);
 
         g.append("g")
-            .call(d3.axisLeft(y).ticks(5).tickSize(-innerWidth).tickFormat(""))
+            .call(d3.axisLeft(y).ticks(4).tickSize(-innerWidth).tickFormat(""))
             .call((g) => g.select(".domain").remove())
             .call((g) => g.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"));
 
@@ -215,8 +215,8 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .call(d3.axisBottom(x).tickSizeOuter(0))
             .call((g) => g.select(".domain").attr("stroke", "#cbd5e1"))
             .selectAll("text")
-            .style("font-size", "11px")
-            .style("fill", "#4b5563");
+            .style("font-size", "13px")
+            .style("fill", "#374151");
 
         const yFormat =
             mode === "indexed"
@@ -226,12 +226,12 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
                 : d3.format(",");
 
         g.append("g")
-            .call(d3.axisLeft(y).ticks(5).tickFormat(yFormat))
+            .call(d3.axisLeft(y).ticks(4).tickFormat(yFormat))
             .call((g) => g.select(".domain").remove())
             .call((g) => g.selectAll("line").remove())
             .selectAll("text")
-            .style("font-size", "11px")
-            .style("fill", "#4b5563");
+            .style("font-size", "13px")
+            .style("fill", "#374151");
 
         const line = d3
             .line()
@@ -282,7 +282,7 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .datum((d) => ({ State: d.State, last: d.values[d.values.length - 1] }))
             .attr("x", (d) => x(d.last.Year) + 6)
             .attr("y", (d) => y(d.last.plotVal) + 4)
-            .style("font-size", "10.5px")
+            .style("font-size", "12px")
             .style("font-weight", "700")
             .style("fill", (d) => STATE_PALETTE[d.State] || "#374151")
             .attr("opacity", (d) =>
@@ -351,7 +351,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 18, right: 20, bottom: 28, left: 58 };
+    const margin = { top: 18, right: 20, bottom: 28, left: 72 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -398,7 +398,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
 
     // Gridlines
     g.append("g")
-        .call(d3.axisLeft(y).ticks(5).tickSize(-innerWidth).tickFormat(""))
+        .call(d3.axisLeft(y).ticks(4).tickSize(-innerWidth).tickFormat(""))
         .call((g) => g.select(".domain").remove())
         .call((g) => g.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"));
 
@@ -408,7 +408,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
         .call(d3.axisBottom(x).tickSizeOuter(0))
         .call((g) => g.select(".domain").attr("stroke", "#cbd5e1"))
         .selectAll("text")
-        .style("font-size", "11.5px")
+        .style("font-size", "13px")
         .style("font-weight", "700")
         .style("fill", "#1f2937");
 
@@ -420,12 +420,12 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
         : d3.format(",");
 
     g.append("g")
-        .call(d3.axisLeft(y).ticks(5).tickFormat(yFormat))
+        .call(d3.axisLeft(y).ticks(4).tickFormat(yFormat))
         .call((g) => g.select(".domain").remove())
         .call((g) => g.selectAll("line").remove())
         .selectAll("text")
-        .style("font-size", "11px")
-        .style("fill", "#4b5563");
+        .style("font-size", "13px")
+        .style("fill", "#374151");
 
     const tooltip = d3.select("#tooltip");
 
@@ -501,7 +501,7 @@ function renderChart2StateBars(stateSummary, filterState, onSelectState) {
         .attr("x", (d) => x(d.State) + x.bandwidth() / 2)
         .attr("y", (d) => y(d.plotVal) - 5)
         .attr("text-anchor", "middle")
-        .style("font-size", "10.5px")
+        .style("font-size", "12px")
         .style("font-weight", "700")
         .style("fill", "#1f2937")
         .attr("opacity", (d) =>

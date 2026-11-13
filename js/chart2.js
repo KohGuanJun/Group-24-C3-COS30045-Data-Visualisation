@@ -5,7 +5,7 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
     const node = container.node();
     const width = node.clientWidth || 540;
     const height = node.clientHeight || 205;
-    const margin = { top: 20, right: 62, bottom: 26, left: 48 };
+    const margin = { top: 20, right: 66, bottom: 26, left: 48 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -21,7 +21,7 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
         .attr("width", "100%")
         .attr("height", "100%");
     svg.append("title").attr("id", "chart3-svg-title").text("Average Bed Days by State");
-    svg.append("desc").attr("id", "chart3-svg-desc").text("Horizontal bar chart comparing average hospital bed days per road crash injury across Australian states, with a dashed vertical benchmark line showing the national average. Click a bar to filter to that state.");
+    svg.append("desc").attr("id", "chart3-svg-desc").text("Horizontal dot plot comparing average hospital bed days per road crash injury across Australian states, with a dashed vertical benchmark line showing the national average. Click a dot to filter to that state.");
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -33,9 +33,11 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
 
     const x = d3
         .scaleLinear()
-        .domain([0, (d3.max(sorted, (d) => d.Average_Bed_Days) || 1) * 1.15])
+        .domain([0, Math.max(d3.max(sorted, (d) => d.Average_Bed_Days) || 0, nationalAvgBedDays, 1) * 1.15])
         .nice()
         .range([0, innerWidth]);
+
+    const rowFontSize = Math.max(10, Math.min(14, Math.floor(y.step() - 1)));
 
     // X Axis
     g.append("g")
@@ -44,30 +46,29 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
         .call((g) => g.select(".domain").remove())
         .call((g) => g.selectAll("line").attr("stroke", "#e5e7eb").attr("stroke-dasharray", "3,3"))
         .selectAll("text")
-        .style("font-size", "11px")
-        .style("fill", "#4b5563");
+        .style("font-size", "14px")
+        .style("fill", "#374151");
 
     // Y Axis
     g.append("g")
         .call(d3.axisLeft(y).tickSize(0))
         .call((g) => g.select(".domain").remove())
         .selectAll("text")
-        .style("font-size", "11.5px")
+        .style("font-size", `${rowFontSize}px`)
         .style("font-weight", "700")
         .style("fill", "#1f2937");
 
     const tooltip = d3.select("#tooltip");
 
-    // Bars: High-contrast Strong Blue (#0072B2) for above national avg, muted slate (#8C96A6) for below
-    g.selectAll(".bed-bar")
+    const centerY = (d) => y(d.State) + y.bandwidth() / 2;
+
+    g.selectAll(".bed-dot")
         .data(sorted)
-        .join("rect")
-        .attr("class", "bed-bar")
-        .attr("y", (d) => y(d.State))
-        .attr("x", 0)
-        .attr("height", y.bandwidth())
-        .attr("width", (d) => x(d.Average_Bed_Days))
-        .attr("rx", 3)
+        .join("circle")
+        .attr("class", "bed-dot")
+        .attr("cx", (d) => x(d.Average_Bed_Days))
+        .attr("cy", centerY)
+        .attr("r", 6)
         .attr("fill", (d) =>
             d.Average_Bed_Days >= nationalAvgBedDays ? UI_COLORS.aboveAvgBar : UI_COLORS.belowAvgBar
         )
@@ -121,16 +122,17 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
         .data(sorted)
         .join("text")
         .attr("class", "bed-label")
-        .attr("x", (d) => x(d.Average_Bed_Days) + 6)
-        .attr("y", (d) => y(d.State) + y.bandwidth() / 2 + 4)
+        .attr("x", (d) => x(d.Average_Bed_Days) + 10)
+        .attr("y", centerY)
+        .attr("dy", "0.35em")
         .text((d) => `${d.Average_Bed_Days.toFixed(2)}d`)
-        .style("font-size", "11px")
+        .style("font-size", `${rowFontSize}px`)
         .style("font-weight", "700")
         .style("fill", "#1f2937");
 
     // High-contrast Dark Charcoal Benchmark Line + Direct Label (Colourblind-safe)
     if (nationalAvgBedDays > 0) {
-        g.append("line")
+        g.insert("line", ".bed-dot")
             .attr("x1", x(nationalAvgBedDays))
             .attr("x2", x(nationalAvgBedDays))
             .attr("y1", -4)
@@ -143,7 +145,7 @@ function renderChart3BedDays(stateSummary, nationalAvgBedDays, filterState, onSe
             .attr("x", x(nationalAvgBedDays))
             .attr("y", -7)
             .attr("text-anchor", "middle")
-            .style("font-size", "10.5px")
+            .style("font-size", "14px")
             .style("font-weight", "700")
             .style("fill", "#111827")
             .text(`Avg: ${nationalAvgBedDays.toFixed(2)}d`);
@@ -174,7 +176,7 @@ function renderChart4StateShareDonut(stateSummary, filterState, onSelectState) {
     svg.append("title").attr("id", "chart4-svg-title").text("State Share of Hospitalised Injuries");
     svg.append("desc").attr("id", "chart4-svg-desc").text("Donut chart showing each Australian state and territory's proportional share of total hospitalised road crash injuries. Click a slice or legend item to filter all charts to that state.");
 
-    const radius = Math.min(width * 0.42, height) / 2 - 12;
+    const radius = Math.min(width * 0.22, height / 2 - 3);
     const centerX = width * 0.28;
     const centerY = height / 2;
 
@@ -187,7 +189,7 @@ function renderChart4StateShareDonut(stateSummary, filterState, onSelectState) {
 
     const arc = d3
         .arc()
-        .innerRadius(radius * 0.54)
+        .innerRadius(radius * 0.67)
         .outerRadius(radius);
 
     const tooltip = d3.select("#tooltip");
@@ -242,15 +244,15 @@ function renderChart4StateShareDonut(stateSummary, filterState, onSelectState) {
 
     g.append("text")
         .attr("text-anchor", "middle")
-        .attr("dy", "-0.2em")
-        .style("font-size", "11px")
-        .style("fill", "#4b5563")
+        .attr("y", -4)
+        .style("font-size", "14px")
+        .style("fill", "#374151")
         .text("Total");
 
     g.append("text")
         .attr("text-anchor", "middle")
-        .attr("dy", "1.1em")
-        .style("font-size", "14.5px")
+        .attr("y", 13)
+        .style("font-size", "18px")
         .style("font-weight", "700")
         .style("fill", "#111827")
         .text(d3.format(",")(totalInjuries));
@@ -302,7 +304,7 @@ function renderChart4StateShareDonut(stateSummary, filterState, onSelectState) {
     rows.append("text")
         .attr("x", 18)
         .attr("y", 0)
-        .style("font-size", "12px")
+        .style("font-size", "14px")
         .style("font-weight", "700")
         .style("fill", "#1f2937")
         .text((d) => d.State);
@@ -311,7 +313,7 @@ function renderChart4StateShareDonut(stateSummary, filterState, onSelectState) {
         .attr("x", 185)
         .attr("y", 0)
         .attr("text-anchor", "end")
-        .style("font-size", "11.5px")
+        .style("font-size", "14px")
         .style("font-weight", "600")
         .style("fill", "#374151")
         .text((d) => {
