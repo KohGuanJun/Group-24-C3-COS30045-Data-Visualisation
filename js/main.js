@@ -185,8 +185,11 @@ function updateDashboard() {
 document.addEventListener("DOMContentLoaded", () => {
     // Tab switching
     function updateFilterBarVisibility(activeTab) {
+        const isGlossary = activeTab === "glossary";
         const isFirstNations = activeTab === "first-nations";
         const isDemographics = activeTab === "demographics";
+        const filterBar = document.querySelector(".filter-bar");
+        if (filterBar) filterBar.style.display = isGlossary ? "none" : "";
         document.getElementById("field-state").style.display =
             isFirstNations || isDemographics ? "none" : "flex";
         document.getElementById("field-road-user").style.display = isDemographics ? "flex" : "none";
