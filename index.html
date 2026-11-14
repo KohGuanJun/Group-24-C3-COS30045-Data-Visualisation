@@ -71,6 +71,7 @@
                     <option value="All" selected>All Road Users</option>
                     <option value="Car driver">Car driver</option>
                     <option value="Car passenger">Car passenger</option>
+                    <option value="Car unknown position">Car unknown position</option>
                     <option value="Motorcyclist">Motorcyclist</option>
                     <option value="Pedal cyclist">Pedal cyclist</option>
                     <option value="Pedestrian">Pedestrian</option>
@@ -78,6 +79,7 @@
                     <option value="Pick-up truck or van occupant">Pick-up / Van occupant</option>
                     <option value="Heavy transport driver">Heavy transport driver</option>
                     <option value="Heavy transport passenger">Heavy transport passenger</option>
+                    <option value="Heavy transport unknown position">Heavy transport unknown position</option>
                     <option value="Other or unknown">Other or unknown</option>
                 </select>
             </div>
@@ -204,7 +206,7 @@
                 <!-- 2: Remoteness -->
                 <div class="chart-box">
                     <div class="chart-header">
-                        <h2 id="title-demo-2">Share by Remoteness Area (2011–2021)</h2>
+                        <h2 id="title-demo-2">Share of Hospitalisations by Remoteness (2011&ndash;2021)</h2>
                         <span class="chart-hint">Major Cities vs Regional &amp; Remote</span>
                     </div>
                     <div id="chart-remoteness" class="chart-area"></div>
@@ -240,7 +242,7 @@
                 <div class="chart-box">
                     <div class="chart-header">
                         <h2 id="title-fn-1">First Nations vs Non-Indigenous Trend (2011–2021)</h2>
-                        <span class="chart-hint">Annual hospitalisation trends</span>
+                        <span class="chart-hint">Click a year or point to filter</span>
                     </div>
                     <div id="fn-chart-trend" class="chart-area"></div>
                 </div>
@@ -282,36 +284,35 @@
 
                 <div class="glossary-section">
                     <h3>Data Source</h3>
-                    <p><strong>BITRE</strong> &ndash; Bureau of Infrastructure and Transport Research Economics. Hospitalised Injury Data (2011&ndash;2021), Australian Road Traffic dataset. All figures represent cases where a road-crash victim was admitted to hospital (not merely treated at an emergency department and discharged).</p>
+                    <p>The dashboard uses 2011&ndash;2021 Australian road crash hospitalisation data from the Bureau of Infrastructure and Transport Research Economics (BITRE). See the <a href="https://www.bitre.gov.au/resource/road-safety/hospitalised-injury">BITRE release</a> and its <a href="https://www.bitre.gov.au/sites/default/files/documents/hospitalised-injury-data-dictionary-september-2023.pdf">data dictionary</a>.</p>
                 </div>
 
                 <div class="glossary-section">
-                    <h3>Key Metric Definitions</h3>
-                    <p><strong>Hospitalised Injuries:</strong> The total number of people admitted to hospital as a result of a road traffic crash injury in the reference period.</p>
-                    <p><strong>Total Bed Days:</strong> The cumulative number of nights patients spent in hospital across all admissions. A higher figure indicates greater overall burden on the health system.</p>
-                    <p><strong>Average Bed Days (per admission):</strong> Total Bed Days divided by the number of Hospitalised Injuries. This serves as a proxy for injury severity &mdash; a higher average indicates patients required longer hospital recovery.</p>
+                    <h3>Key Metrics</h3>
+                    <p><strong>Hospitalised injuries.</strong> Recorded hospitalisation cases for road crash injuries. One person can account for more than one case.</p>
+                    <p><strong>Total bed days.</strong> Total days of admitted hospital care for the cases covered by the dataset.</p>
+                    <p><strong>Average bed days.</strong> Total bed days divided by total hospitalisation cases. This measures hospital care per case and can also reflect care practices.</p>
                 </div>
 
                 <div class="glossary-section">
-                    <h3>Demographic &amp; Geographic Breakdowns</h3>
-                    <p><strong>Road User Type:</strong> The role of the injured person in the crash (e.g., Car driver, Motorcyclist, Pedal cyclist, Pedestrian) based on official BITRE classifications.</p>
-                    <p><strong>ABS Remoteness Area:</strong> Geographic classification from the Australian Bureau of Statistics (ASGS Remoteness Structure) &mdash; Major Cities, Inner/Outer Regional, Remote, and Very Remote &mdash; reflecting access to services.</p>
-                    <p><strong>Age Group &amp; Sex:</strong> Grouped age brackets (0&ndash;7, 8&ndash;16, 17&ndash;25, 26&ndash;39, 40&ndash;64, 65&ndash;74, 75+) and recorded sex (Female, Male, Intersex/indeterminate/missing).</p>
-                    <p><strong>First Nations Status:</strong> Compares hospitalised crash injuries among Aboriginal and Torres Strait Islander (First Nations) peoples and Non-Indigenous Australians across age, road user group, and remoteness.</p>
+                    <h3>Demographic Categories</h3>
+                    <p><strong>Road user.</strong> The injured person's role in the crash, such as car driver, motorcyclist or pedestrian.</p>
+                    <p><strong>Remoteness.</strong> Based on usual residence. Regional includes Inner and Outer Regional. Remote includes Very Remote. The demographics data also has a Missing category.</p>
+                    <p><strong>Age and sex.</strong> Age is recorded at admission. Demographics shows 65&ndash;74 and 75+ separately. First Nations uses 65+. The sex chart retains the combined intersex, indeterminate or missing category.</p>
                 </div>
 
                 <div class="glossary-section">
-                    <h3>Important Data Limitations</h3>
-                    <p><strong>Population size differences:</strong> Direct comparison of raw injury counts across jurisdictions (e.g., NSW vs. Northern Territory) is misleading without accounting for population size &mdash; NSW has ~32&times; the population of the NT (~16&times; its total hospitalisations). Use the <em>% Change Since 2011</em> and <em>Average Bed Days</em> views to compare relative growth and severity fairly.</p>
-                    <p><strong>Year-on-year variation (COVID-19):</strong> The 2020 figures reflect COVID-19 travel restrictions, which reduced road traffic volumes and hospitalisations nationwide.</p>
-                    <p><strong>Unallocated, missing &amp; suppressed records:</strong> Around 7,591 national traffic records lack an allocated state (explaining the 410,884 national demographic total vs. 403,293 state total). In the First Nations dataset, 66 small-count cells marked <code>n.p.</code> (not published for privacy) were filtered out during KNIME data cleaning.</p>
+                    <h3>Interpreting the Data</h3>
+                    <p><strong>Comparing states.</strong> Raw counts show the number of cases. Compare per-person risk using population-based rates. Indexed mode compares each state with its own 2011 value.</p>
+                    <p><strong>Changes over time.</strong> The eight jurisdictions totalled 38,869 cases in 2019 and 37,292 in 2020, with increases in five jurisdictions. BITRE also flags changes in case inclusion in Victoria in 2012 and NSW in 2017.</p>
+                    <p><strong>Dataset coverage.</strong> The demographics file contains 410,884 cases and the state file totals 403,293. The project files do not identify the records behind the 7,591-case difference. First Nations breakdowns can also have different totals.</p>
                 </div>
 
                 <div class="glossary-section">
-                    <h3>Methodology Notes</h3>
-                    <p><strong>Weighted average bed days:</strong> National and multi-year average bed days are computed as a <em>weighted</em> average (Total Bed Days &divide; Total Hospitalised Injuries = 4.89 days) rather than an unweighted mean of annual averages.</p>
-                    <p><strong>% Change Since 2011 (indexed mode):</strong> Each state&rsquo;s value is expressed relative to its own 2011 baseline: ((value &minus; baseline) &divide; baseline) &times; 100, removing absolute population size bias.</p>
-                    <p><strong>Cross-chart filtering:</strong> Clicking any bar, slice, or data point (or pressing <em>Enter / Space</em> via keyboard) filters all charts on the active tab simultaneously. Click <em>Reset</em> to restore defaults.</p>
+                    <h3>Dashboard Controls</h3>
+                    <p><strong>Overview.</strong> Select a year or state to change the focus. The bed-days comparison and state share chart keep their own metrics when the Metric filter changes.</p>
+                    <p><strong>Demographics.</strong> Select a category to filter the other charts. When Average Bed Days is selected, the remoteness donut shows the share of hospitalisations.</p>
+                    <p><strong>First Nations.</strong> Select a year label or trend point to update the other charts. Click an age, remoteness or road-user mark to highlight it and show its trend. Use Reset to restore the default filters.</p>
                 </div>
             </div>
         </div>

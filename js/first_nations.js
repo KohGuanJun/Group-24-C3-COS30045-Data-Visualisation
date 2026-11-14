@@ -17,7 +17,7 @@ function initFirstNationsCharts() {
         : rawFnData.filter(d => String(d["Calendar year"]) === String(yearVal));
 
     updateFnKeyFinding(filtered, yearVal);
-    renderFnTrendChart(filtered, yearVal);
+    renderFnTrendChart(yearVal);
     renderFnRemotenessChart(filtered);
     renderFnAgeChart(filtered);
     renderFnRoadUserChart(filtered);
@@ -53,7 +53,7 @@ function updateFnKeyFinding(data, yearVal) {
 }
 
 // 1. Annual Trend Line Chart
-function renderFnTrendChart(data, yearVal) {
+function renderFnTrendChart(yearVal) {
     const container = d3.select("#fn-chart-trend");
     if (container.empty()) return;
     container.selectAll("*").remove();
@@ -93,12 +93,39 @@ function renderFnTrendChart(data, yearVal) {
         .attr("height", "100%");
 
     svg.append("title").attr("id", "fn-trend-title").text("First Nations vs Non-Indigenous Annual Trend");
-    svg.append("desc").attr("id", "fn-trend-desc").text("Line chart comparing annual hospitalised injuries between First Nations people and Non-Indigenous Australians from 2011 to 2021.");
+    svg.append("desc").attr("id", "fn-trend-desc").text("Line chart comparing annual hospitalisations from 2011 to 2021. Select a year label or a point to filter the other charts. Select the same year again to show all years.");
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
     const x = d3.scalePoint().domain(years).range([0, innerWidth]).padding(0.25);
     const y = d3.scaleLinear().domain([0, maxVal * 1.15]).nice().range([innerHeight, 0]);
+    const tooltip = d3.select("#tooltip");
+
+    function addYearSelection(marks, getYear, getLabel, getId) {
+        marks
+            .attr("id", getId)
+            .attr("role", "button")
+            .attr("tabindex", 0)
+            .attr("aria-label", getLabel)
+            .attr("aria-pressed", d => String(getYear(d)) === yearVal)
+            .style("cursor", "pointer")
+            .on("click.select-year", function (event, d) {
+                const yearSelect = document.getElementById("filter-year");
+                const year = String(getYear(d));
+                const restoreFocus = document.activeElement === this;
+                const id = this.id;
+                tooltip.classed("hidden", true);
+                yearSelect.value = yearSelect.value === year ? "All" : year;
+                yearSelect.dispatchEvent(new Event("change", { bubbles: true }));
+                if (restoreFocus) document.getElementById(id)?.focus();
+            })
+            .on("keydown.select-year", function (event) {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    if (!event.repeat) this.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+                }
+            });
+    }
 
     // Gridlines
     g.append("g")
@@ -114,7 +141,8 @@ function renderFnTrendChart(data, yearVal) {
         .selectAll("text")
         .style("font-size", "14px")
         .style("fill", "#374151")
-        .style("font-weight", d => String(d) === String(yearVal) ? "700" : "400");
+        .style("font-weight", d => String(d) === yearVal ? "700" : "400")
+        .call(addYearSelection, year => year, year => `Filter by ${year}`, year => `fn-trend-year-${year}`);
 
     // Y-Axis
     g.append("g")
@@ -131,9 +159,8 @@ function renderFnTrendChart(data, yearVal) {
     };
 
     const line = d3.line().x(d => x(d.year)).y(d => y(d.val));
-    const tooltip = d3.select("#tooltip");
 
-    series.forEach(s => {
+    series.forEach((s, seriesIndex) => {
         g.append("path")
             .datum(s.values)
             .attr("fill", "none")
@@ -151,7 +178,12 @@ function renderFnTrendChart(data, yearVal) {
             .attr("fill", colorScale[s.status])
             .attr("stroke", d => String(d.year) === String(yearVal) ? "#111827" : "#ffffff")
             .attr("stroke-width", d => String(d.year) === String(yearVal) ? 2.5 : 2)
-            .style("cursor", "pointer")
+            .call(
+                addYearSelection,
+                d => d.year,
+                d => `${s.status} in ${d.year}, ${d3.format(",")(d.val)} hospitalisations. Filter by year.`,
+                d => `fn-trend-point-${seriesIndex}-${d.year}`
+            )
             .on("mouseenter", (event, d) => {
                 tooltip.classed("hidden", false)
                     .html(`<strong>${s.status} (${d.year})</strong><br/>Hospitalisations: <strong>${d3.format(",")(d.val)}</strong>`);

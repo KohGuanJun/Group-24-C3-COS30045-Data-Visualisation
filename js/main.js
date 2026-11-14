@@ -86,19 +86,19 @@ function updateKPIsAndFinding(stateSummary, nationalAvgBedDays) {
     const findingEl = document.getElementById("state-key-finding");
     if (findingEl && stateSummary.length) {
         const topVol = [...stateSummary].sort((a, b) => d3.descending(a.Hospitalised_Injuries, b.Hospitalised_Injuries))[0];
-        const topSev = [...stateSummary].sort((a, b) => d3.descending(a.Average_Bed_Days, b.Average_Bed_Days))[0];
+        const longestStay = [...stateSummary].sort((a, b) => d3.descending(a.Average_Bed_Days, b.Average_Bed_Days))[0];
         const natTotal = d3.sum(stateSummary, (d) => d.Hospitalised_Injuries) || 1;
         const periodLabel = filterState.year === "All" ? "2011–2021" : filterState.year;
 
         if (filterState.state === "All") {
-            const top3Sum = [...stateSummary]
+            const top3 = [...stateSummary]
                 .sort((a, b) => d3.descending(a.Hospitalised_Injuries, b.Hospitalised_Injuries))
-                .slice(0, 3)
-                .reduce((acc, cur) => acc + cur.Hospitalised_Injuries, 0);
+                .slice(0, 3);
+            const top3Sum = d3.sum(top3, (d) => d.Hospitalised_Injuries);
             const top3Pct = ((top3Sum / natTotal) * 100).toFixed(1);
 
             findingEl.innerHTML =
-                `<strong>Key Finding (${periodLabel}):</strong> Populous eastern states (<strong>NSW, Vic, Qld</strong>) account for <strong>${top3Pct}%</strong> of raw hospitalisations (led by <strong>${topVol.State}</strong> with ${d3.format(",")(topVol.Hospitalised_Injuries)}), whereas smaller/remote jurisdictions experience longer hospital stays—led by <strong>${topSev.State} (${topSev.Average_Bed_Days.toFixed(2)} bed days</strong> vs ${nationalAvgBedDays.toFixed(2)}d national avg), reflecting higher crash severity.`;
+                `<strong>Key Finding (${periodLabel}):</strong> <strong>${top3.map((d) => d.State).join(", ")}</strong> account for <strong>${top3Pct}%</strong> of cases, led by <strong>${topVol.State}</strong> with ${d3.format(",")(topVol.Hospitalised_Injuries)}. <strong>${longestStay.State}</strong> had the highest average at <strong>${longestStay.Average_Bed_Days.toFixed(2)} bed days</strong> per case (${nationalAvgBedDays.toFixed(2)} nationally).`;
         } else {
             const stObj = stateSummary.find((d) => d.State === filterState.state);
             const sharePct = stObj ? ((stObj.Hospitalised_Injuries / natTotal) * 100).toFixed(1) : "0.0";
@@ -111,16 +111,21 @@ function updateKPIsAndFinding(stateSummary, nationalAvgBedDays) {
     }
 }
 
+function updateHeaderPeriod() {
+    const activeView = document.querySelector(".tab-btn.active")?.dataset.view;
+    const period = filterState.year === "All" || activeView === "glossary" ? "2011–2021" : filterState.year;
+    const state = filterState.state;
+    document.getElementById("active-year-label").textContent =
+        activeView === "overview" && state !== "All" ? `${state} (${period})` : period;
+}
+
 function updateDashboard() {
+    updateHeaderPeriod();
     if (!rawStateData.length) return;
 
     const periodText = filterState.year === "All" ? "2011–2021" : filterState.year;
     const stateText = filterState.state === "All" ? "All Australia" : filterState.state;
     const metricText = metricLabels[filterState.metric];
-
-    // Header badge
-    document.getElementById("active-year-label").textContent =
-        filterState.state === "All" ? periodText : `${filterState.state} (${periodText})`;
 
     // Chart titles
     if (filterState.trendMode === "indexed") {
@@ -209,6 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (target) target.classList.add("active");
 
             updateFilterBarVisibility(tab.dataset.view);
+            updateHeaderPeriod();
         });
     });
 

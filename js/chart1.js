@@ -345,13 +345,14 @@ function renderChart1Trend(data, filterState, onSelectYear, onSelectState) {
             .on("mouseenter", (event, d) => {
                 const rawFormatted =
                     metric === "Average_Bed_Days" ? d.rawVal.toFixed(2) : d3.format(",")(d.rawVal);
-                const pctStr = `${d.plotVal >= 0 ? "+" : ""}${d.plotVal.toFixed(1)}% vs 2011`;
+                const indexedChange = mode === "indexed"
+                    ? `<br/>Change since 2011: <strong>${d.plotVal >= 0 ? "+" : ""}${d.plotVal.toFixed(1)}%</strong>`
+                    : "";
                 tooltip
                     .classed("hidden", false)
                     .html(
                         `<strong>${d.State} (${d.Year})</strong><br/>` +
-                        `Value: <strong>${rawFormatted}</strong><br/>` +
-                        `Change since 2011: <strong>${pctStr}</strong>`
+                        `${metricLabels[metric]}: <strong>${rawFormatted}</strong>${indexedChange}`
                     );
             })
             .on("mousemove", (event) => {

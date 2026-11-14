@@ -100,7 +100,8 @@ function updateDemographicsCharts() {
     const t3 = document.getElementById("title-demo-3");
     const t4 = document.getElementById("title-demo-4");
     if (t1) t1.textContent = `${metricText} by Road User (${periodText})`;
-    if (t2) t2.textContent = `Share by Remoteness Area (${periodText})`;
+    const remotenessMeasure = metricVal === "Bed_Days" ? "Bed Days" : "Hospitalisations";
+    if (t2) t2.textContent = `Share of ${remotenessMeasure} by Remoteness (${periodText})`;
     if (t3) t3.textContent = `${metricText} by Age Group (${periodText})`;
     if (t4) t4.textContent = `${metricText} by Sex (${periodText})`;
 
@@ -393,7 +394,8 @@ function renderRemotenessDonut(selector, data, metric) {
     const height = node.clientHeight || 290;
 
     const groups = Array.from(new Set(data.map((d) => d["ABS remoteness area"]))).filter(Boolean);
-    const useMetric = metric === "Average_Bed_Days" ? "Hospitalised_Injuries" : metric;
+    const useMetric = metric === "Bed_Days" ? "Bed_Days" : "Hospitalised_Injuries";
+    const measure = useMetric === "Bed_Days" ? "Bed Days" : "Hospitalisations";
     const summary = groups.map((key) => {
         const rows = data.filter((d) => d["ABS remoteness area"] === key);
         return { key, val: getDemoMetricValue(rows, useMetric) };
@@ -409,9 +411,9 @@ function renderRemotenessDonut(selector, data, metric) {
         .attr("height", "100%");
 
     svg.append("title").attr("id", "demo-donut-title")
-        .text("Share by Remoteness Area");
+        .text(`Share of ${measure} by Remoteness`);
     svg.append("desc").attr("id", "demo-donut-desc")
-        .text("Donut chart showing the proportion of hospitalised road crash injuries from Major Cities, Regional, Remote, and other remoteness areas. Click a slice to cross-filter all charts.");
+        .text(`Donut chart showing the share of ${measure.toLowerCase()} by remoteness. Select a slice to filter the other charts.`);
 
     const radius = Math.min(width * 0.44, height) / 2 - 16;
     const centerX = width * 0.3;
